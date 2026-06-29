@@ -8,7 +8,6 @@ import LoginPage from "../pages/LoginPage";
 import RegisterPage from "../pages/RegisterPage";
 import ExamplePage from "../pages/ExamplePage";
 import PageNotFound from "../pages/PageNotFound";
-import Counter from "../components/contextExample/Counter";
 
 function Router() {
   return (
@@ -19,7 +18,7 @@ function Router() {
       <Route path={ROUTES.TASK_PAGE + ":id"} element={<TaskPage />} />
       <Route path={ROUTES.LOGIN} element={<LoginPage />} />
       <Route path={ROUTES.REGISTER} element={<RegisterPage />} />
-      <Route path={"/sandbox"} element={<Counter />} />
+      <Route path={"/sandbox"} element={<ExamplePage />} />
       <Route path={"/*"} element={<PageNotFound />} />
     </Routes>
   );
