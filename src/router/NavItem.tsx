@@ -1,31 +1,54 @@
 import { NavLink } from "react-router-dom";
+import { Button } from "@mui/material";
 
-const navLinkStyle = {
-  fontFamily: "serif",
-  textDecoration: "none",
-  color: "#333",
-  padding: "8px 16px",
-  borderRadius: "8px",
-  fontSize: "1rem",
-  fontWeight: "500",
-  transition: "all 0.3s ease", // גורם לכל שינוי (צבע, רקע) לקרות בהדרגה
-  display: "inline-flex",
-  alignItems: "center",
-  gap: "8px",
-};
+interface NavItemProps {
+  to: string;
+  label: string;
+}
 
-function NavItem({ to, label }: { to: string; label: string }) {
+function NavItem({ to, label }: NavItemProps) {
   return (
-    <NavLink
+    <Button
+      component={NavLink}
       to={to}
-      style={({ isActive }) => ({
-        ...navLinkStyle,
-        backgroundColor: isActive ? "#f0f4ff" : "transparent",
-        color: isActive ? "#2563eb" : "#f0f4ff",
-      })}
+      disableRipple // מוריד את אפקט הבלון הלחיץ בשביל מראה SaaS נקי יותר
+      sx={{
+        textTransform: "none", // מונע מ-MUI להפוך את האותיות ל-CAPITALS באנגלית
+        fontSize: "0.95rem",
+        fontWeight: "600",
+        px: 2,
+        py: 0.75,
+        borderRadius: "8px",
+        color: "text.secondary",
+        transition: "all 0.2s ease-in-out",
+
+        // עיצוב במצב ריחופ עכבר (Hover) רגיל
+        "&:hover": {
+          color: "text.primary",
+          bgcolor: "action.hover",
+        },
+
+        // הקסם של MUI + react-router-dom:
+        // כשהקישור אקטיבי, ה-NavLink מוסיף אוטומטית את הקלאס '.active'
+        "&.active": {
+          color: "primary.main",
+          bgcolor: (theme) =>
+            theme.palette.mode === "dark"
+              ? "rgba(144, 202, 249, 0.12)" // רקע כחלחל עדין מאוד ב-Dark Mode
+              : "rgba(25, 118, 210, 0.08)", // רקע כחלחל עדין ב-Light Mode
+          fontWeight: "700",
+
+          "&:hover": {
+            bgcolor: (theme) =>
+              theme.palette.mode === "dark"
+                ? "rgba(144, 202, 249, 0.2)"
+                : "rgba(25, 118, 210, 0.15)",
+          },
+        },
+      }}
     >
       {label}
-    </NavLink>
+    </Button>
   );
 }
 

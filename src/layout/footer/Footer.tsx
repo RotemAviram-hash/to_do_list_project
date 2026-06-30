@@ -1,59 +1,121 @@
+import { Box, Paper, Typography, Link } from "@mui/material";
+import { useContext } from "react";
 import {
-  Box,
-  BottomNavigation,
-  BottomNavigationAction,
-  Paper,
-} from "@mui/material";
-import RestoreIcon from "@mui/icons-material/Restore";
-import FavoriteIcon from "@mui/icons-material/Favorite";
-import LocationOnIcon from "@mui/icons-material/LocationOn";
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import ROUTES from "../../router/routes";
+  ProjectThemeContext,
+  type ThemeContextType,
+} from "../../providers/ProjectThemeProvider";
 
 function Footer() {
-  const [value, setValue] = useState(0);
-  const navigate = useNavigate();
+  const { isDark } = useContext(ProjectThemeContext) as ThemeContextType;
+
   return (
-    <Box sx={{ pb: 7 }}>
-      <Paper
-        sx={{ position: "fixed", bottom: 0, left: 0, right: 0 }}
-        elevation={3}
+    <Paper
+      component="footer"
+      elevation={0}
+      sx={{
+        mt: "auto",
+        py: 2.5,
+        px: 3,
+        bgcolor: isDark ? "background.paper" : "#f8f9fa", // צבע רקע מעט שונה ב-Light Mode כדי לתת מסגרת יפה לעמוד
+        borderTop: "1px solid",
+        borderColor: "divider",
+        display: "flex",
+        justifyContent: "center", // ממרכז את כל הפוטר למרכז המסך
+        alignItems: "center",
+      }}
+    >
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: 2,
+          flexWrap: "wrap", // מוודא שבמסכים קטנים זה ירד שורה בצורה יפה
+        }}
       >
-        <BottomNavigation
-          showLabels
-          value={value}
-          onChange={(_, newValue) => {
-            setValue(newValue);
+        {/* מותג */}
+        <Typography
+          variant="body2"
+          sx={{
+            fontWeight: "700",
+            fontSize: "0.85rem",
+            background: isDark
+              ? "linear-gradient(45deg, #90caf9 30%, #f48fb1 90%)"
+              : "linear-gradient(45deg, #1976d2 30%, #9c27b0 90%)",
+            WebkitBackgroundClip: "text",
+            WebkitTextFillColor: "transparent",
+            userSelect: "none",
           }}
         >
-          <BottomNavigationAction
-            label="Home"
-            icon={<RestoreIcon />}
-            onClick={() => {
-              console.log("Home clicked");
-              navigate(ROUTES.HOME);
+          TaskFlow
+        </Typography>
+
+        {/* נקודת הפרדה עדינה */}
+        <Typography variant="caption" sx={{ color: "text.disabled" }}>
+          •
+        </Typography>
+
+        <Typography
+          variant="caption"
+          sx={{
+            color: "text.secondary",
+            fontWeight: "500",
+            fontSize: "0.8rem",
+          }}
+        >
+          &copy; {new Date().getFullYear()} All rights reserved
+        </Typography>
+
+        {/* נקודת הפרדה עדינה */}
+        <Typography variant="caption" sx={{ color: "text.disabled" }}>
+          •
+        </Typography>
+
+        {/* קישורים טקסטואליים צמודים */}
+        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+          <Link
+            href="#"
+            sx={{
+              color: "text.secondary",
+              fontSize: "0.8rem",
+              fontWeight: "500",
+              textDecoration: "none",
+              transition: "color 0.2s",
+              "&:hover": { color: "primary.main" },
             }}
-          />
-          <BottomNavigationAction
-            label="Contact"
-            icon={<FavoriteIcon />}
-            onClick={() => {
-              console.log("contact clicked");
-              navigate(ROUTES.CONTACT);
+          >
+            Terms
+          </Link>
+          <Link
+            href="#"
+            sx={{
+              color: "text.secondary",
+              fontSize: "0.8rem",
+              fontWeight: "500",
+              textDecoration: "none",
+              transition: "color 0.2s",
+              "&:hover": { color: "primary.main" },
             }}
-          />
-          <BottomNavigationAction
-            label="About"
-            icon={<LocationOnIcon />}
-            onClick={() => {
-              console.log("about clicked");
-              navigate(ROUTES.ABOUT);
+          >
+            Privacy
+          </Link>
+          <Link
+            href="#"
+            sx={{
+              color: "text.secondary",
+              fontSize: "0.8rem",
+              fontWeight: "500",
+              textDecoration: "none",
+              transition: "color 0.2s",
+              "&:hover": { color: "primary.main" },
             }}
-          />
-        </BottomNavigation>
-      </Paper>
-    </Box>
+          >
+            Support
+          </Link>
+        </Box>
+      </Box>
+    </Paper>
   );
 }
+
 export default Footer;

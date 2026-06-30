@@ -1,4 +1,4 @@
-import { Box, Button, TextField } from "@mui/material";
+import { Box, Button, TextField, Paper, Container, Grid } from "@mui/material";
 import { useForm } from "react-hook-form";
 import { joiResolver } from "@hookform/resolvers/joi";
 import Joi from "joi";
@@ -6,6 +6,7 @@ import { useUser } from "../providers/UserProvider";
 import { Navigate } from "react-router-dom";
 import ROUTES from "../router/routes";
 
+// 1. הגדרת סכימת הולידציה (נשאר בדיוק אותו דבר)
 const userSchema = Joi.object({
   firstName: Joi.string().min(2).max(50).required().messages({
     "string.empty": "שם פרטי הוא שדה חובה",
@@ -35,7 +36,7 @@ const userSchema = Joi.object({
   }),
 
   phone: Joi.string()
-    .pattern(/^[0-9\-\+]{9,15}$/) // מאפשר מספרים, מקפים ופלוס, בין 9 ל-15 תווים
+    .pattern(/^[0-9\-\+]{9,15}$/)
     .required()
     .messages({
       "string.empty": "מספר טלפון הוא שדה חובה",
@@ -51,7 +52,7 @@ const userSchema = Joi.object({
 });
 
 function RegisterPage() {
-  // 2. חיבור ה-Resolver ל-useForm
+  // 2. חיבור ה-Resolver ל-useForm (נשאר בדיוק אותו דבר)
   const {
     register,
     handleSubmit,
@@ -70,79 +71,109 @@ function RegisterPage() {
   if (user) {
     return <Navigate to={ROUTES.HOME} replace />;
   }
+
   return (
-    <form onSubmit={handleSubmit(onSubmit)}>
-      <Box
+    // מרכז ומגביל את רוחב הטופס לרמה קריאה ונוחה (סביב 550px)
+    <Container maxWidth="sm" sx={{ mt: 6, mb: 6 }}>
+      <Paper
+        elevation={3}
         sx={{
-          display: "flex",
-          flexDirection: "column",
-          gap: 2,
-          maxWidth: 300,
-          mt: 4,
+          p: { xs: 3, md: 5 },
+          borderRadius: 3,
+          bgcolor: "background.paper",
         }}
       >
-        {/* שדה אימייל */}
+        <form onSubmit={handleSubmit(onSubmit)}>
+          {/* שימוש בקונטיינר גריד תקני ומרווח עם size */}
+          <Grid container spacing={2.5}>
+            {/* שם פרטי ושם משפחה יושבים זה לצד זה במסכים רחבים */}
+            <Grid size={{ xs: 12, sm: 6 }}>
+              <TextField
+                {...register("firstName")}
+                label="First Name"
+                fullWidth
+                error={!!errors.firstName}
+                helperText={errors.firstName?.message as string}
+              />
+            </Grid>
 
-        <TextField
-          {...register("email")}
-          placeholder="Email"
-          error={!!errors.email} // צובע באדום אם יש שגיאה
-          helperText={errors.email?.message as string} // מציג את הודעת השגיאה
-        />
+            <Grid size={{ xs: 12, sm: 6 }}>
+              <TextField
+                {...register("lastName")}
+                label="Last Name"
+                fullWidth
+                error={!!errors.lastName}
+                helperText={errors.lastName?.message as string}
+              />
+            </Grid>
 
-        {/* שדה סיסמה */}
+            {/* שדות אימייל וסיסמה זה לצד זה */}
+            <Grid size={{ xs: 12, sm: 6 }}>
+              <TextField
+                {...register("email")}
+                label="Email"
+                fullWidth
+                error={!!errors.email}
+                helperText={errors.email?.message as string}
+              />
+            </Grid>
 
-        <TextField
-          {...register("password")}
-          placeholder="Password"
-          type="password"
-          error={!!errors.password}
-          helperText={errors.password?.message as string}
-        />
-        {/* שדה שם פרטי */}
-        <TextField
-          {...register("firstName")}
-          placeholder="First Name"
-          fullWidth
-          error={!!errors.firstName}
-          helperText={errors.firstName?.message as string}
-        />
+            <Grid size={{ xs: 12, sm: 6 }}>
+              <TextField
+                {...register("password")}
+                label="Password"
+                type="password"
+                fullWidth
+                error={!!errors.password}
+                helperText={errors.password?.message as string}
+              />
+            </Grid>
 
-        {/* שדה שם משפחה */}
-        <TextField
-          {...register("lastName")}
-          placeholder="Last Name"
-          fullWidth
-          error={!!errors.lastName}
-          helperText={errors.lastName?.message as string}
-        />
+            {/* טלפון תופס שורה שלמה או חצי בהתאם לבחירתך, כרטיס מלא לטובת מראה נקי */}
+            <Grid size={12}>
+              <TextField
+                {...register("phone")}
+                label="Phone Number"
+                type="tel"
+                fullWidth
+                error={!!errors.phone}
+                helperText={errors.phone?.message as string}
+              />
+            </Grid>
 
-        {/* שדה טלפון */}
-        <TextField
-          {...register("phone")}
-          placeholder="Phone Number"
-          type="tel"
-          fullWidth
-          error={!!errors.phone}
-          helperText={errors.phone?.message as string}
-        />
+            {/* שדה כתובת מגורים רחב */}
+            <Grid size={12}>
+              <TextField
+                {...register("address")}
+                label="Address"
+                multiline
+                rows={2}
+                fullWidth
+                error={!!errors.address}
+                helperText={errors.address?.message as string}
+              />
+            </Grid>
 
-        {/* שדה כתובת מגורים */}
-        <TextField
-          {...register("address")}
-          placeholder="Address"
-          multiline // מאפשר לכתובת ארוכה להתפרס על כמה שורות אם תרצה
-          rows={2}
-          fullWidth
-          error={!!errors.address}
-          helperText={errors.address?.message as string}
-        />
-
-        <Button variant="contained" type="submit">
-          Sign up
-        </Button>
-      </Box>
-    </form>
+            {/* כפתור שליחה */}
+            <Grid size={12} sx={{ mt: 1 }}>
+              <Button
+                variant="contained"
+                type="submit"
+                size="large"
+                fullWidth
+                sx={{
+                  py: 1.4,
+                  fontWeight: "600",
+                  borderRadius: 2,
+                }}
+              >
+                Sign up
+              </Button>
+            </Grid>
+          </Grid>
+        </form>
+      </Paper>
+    </Container>
   );
 }
 
