@@ -7,7 +7,7 @@ function Main({ children }: { children: ReactNode }) {
       component="main"
       sx={{
         minHeight: "80vh", // מגדיר גובה עמוד
-        backgroundColor: "#f5f5f5", // צבע רקע
+        bgcolor: "background.default",
         padding: 2,
       }}
     >

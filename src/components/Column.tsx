@@ -43,7 +43,8 @@ function Column({
         flexShrink: 0,
         display: "flex",
         flexDirection: "column",
-        bgcolor: isDropTarget ? "action.hover" : "background.default", // שינוי ל-default נותן קונטרסט יפה לעומת הכרטיסים
+        bgcolor: "action.hover",
+
         borderRadius: "16px",
         border: "1px solid",
         borderColor: isDropTarget ? "primary.main" : "divider",

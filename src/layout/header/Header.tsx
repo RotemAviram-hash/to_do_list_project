@@ -31,7 +31,7 @@ function Header() {
       position="sticky" // עדיף מ-static כדי שילווה את הגלילה באלגנטיות
       elevation={0}
       sx={{
-        bgcolor: isDark ? "rgba(30, 30, 30, 0.8)" : "rgba(255, 255, 255, 0.8)",
+        bgcolor: "background.paper",
         backdropFilter: "blur(8px)", // אפקט זכוכית מודרני וחצי שקוף
         borderBottom: "1px solid",
         borderColor: "divider",

@@ -98,7 +98,14 @@ function HomePage() {
   }
 
   return (
-    <Box sx={{ p: 3, pb: 10 }}>
+    <Box
+      sx={{
+        p: 3,
+        pb: 10,
+
+        transition: "background-color 0.2s ease-in-out",
+      }}
+    >
       {!hasColumns ? (
         <Box sx={{ textAlign: "center", py: 6 }}>
           <Typography variant="h6" gutterBottom>

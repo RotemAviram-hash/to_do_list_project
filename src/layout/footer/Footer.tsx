@@ -16,7 +16,7 @@ function Footer() {
         mt: "auto",
         py: 2.5,
         px: 3,
-        bgcolor: isDark ? "background.paper" : "#f8f9fa", // צבע רקע מעט שונה ב-Light Mode כדי לתת מסגרת יפה לעמוד
+        bgcolor: "background.paper", // צבע רקע מעט שונה ב-Light Mode כדי לתת מסגרת יפה לעמוד
         borderTop: "1px solid",
         borderColor: "divider",
         display: "flex",
