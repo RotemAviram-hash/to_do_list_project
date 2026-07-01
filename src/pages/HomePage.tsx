@@ -1,5 +1,5 @@
 import { useEffect, useState, memo, useContext, useMemo } from "react";
-import { Box, Fab, Typography, Button, Paper } from "@mui/material";
+import { Box, Fab, Typography, Button } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import CloseIcon from "@mui/icons-material/Close";
 import ViewColumnIcon from "@mui/icons-material/ViewColumn";
@@ -12,6 +12,7 @@ import { SnackContext } from "../providers/SnackProvider";
 import type { Column } from "../types/Column";
 import CircularProgress from "@mui/material/CircularProgress";
 import { useUser } from "../providers/UserProvider";
+
 function HomePage() {
   const [isTaskDialogOpen, setIsTaskDialogOpen] = useState(false);
   const [isColumnDialogOpen, setIsColumnDialogOpen] = useState(false);
@@ -101,8 +102,6 @@ function HomePage() {
     <Box
       sx={{
         p: 3,
-        pb: 10,
-
         transition: "background-color 0.2s ease-in-out",
       }}
     >
