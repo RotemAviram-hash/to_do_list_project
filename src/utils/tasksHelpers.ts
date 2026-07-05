@@ -1,4 +1,4 @@
-import type { Column } from "../components/Column/Column";
+import type { Column } from "../components/Column/Column.type";
 import type { Task } from "../components/Task/Task.type";
 
 export const getColumnName = (columnId: string, columns: Column[]) => {
