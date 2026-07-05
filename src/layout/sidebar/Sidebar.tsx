@@ -7,22 +7,26 @@ import {
   ListItemButton,
   ListItemText,
   Typography,
+  ListItemIcon,
 } from "@mui/material";
+import { useNavigate } from "react-router-dom";
+import { sidebarList } from "./sidebarLinks";
 
 function Sidebar() {
   const [isOpen, setIsOpen] = useState(false);
+  const navigate = useNavigate();
 
   return (
     <>
-      {/* ידית המגירה המלבנית - צמודה לדופן שמאל ומעוצבת כלשונית */}
+      {/* הידית המלבנית שלך */}
       <Box
         onClick={() => setIsOpen(true)}
         sx={{
           position: "fixed",
           left: 0,
-          top: "40%", // ממקם את הידית בערך באמצע גובה המסך
-          width: "24px", // הרוחב של הידית שבולט מהקיר
-          height: "80px", // האורך של המלבן
+          top: "40%",
+          width: "24px",
+          height: "80px",
           bgcolor: "primary.main",
           color: "primary.contrastText",
           cursor: "pointer",
@@ -30,27 +34,22 @@ function Sidebar() {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          // עיגול פינות רק בצד ימין (הצד הפנימי של המסך)
           borderTopRightRadius: "8px",
           borderBottomRightRadius: "8px",
           boxShadow: "2px 2px 8px rgba(0,0,0,0.15)",
           transition: "background-color 0.2s, width 0.2s",
-          "&:hover": {
-            bgcolor: "primary.dark",
-            width: "28px", // אפקט קטן שהידית קצת נשלפת החוצה ב-Hover
-          },
+          "&:hover": { bgcolor: "primary.dark", width: "28px" },
         }}
       >
         <Box sx={{ fontSize: "12px", fontWeight: "bold" }}>❯</Box>
       </Box>
 
-      {/* המגירה עצמה - מעודכנת לגרסה 6 */}
+      {/* המגירה האלגנטית */}
       <Drawer
         variant="temporary"
         anchor="left"
         open={isOpen}
         onClose={() => setIsOpen(false)}
-        // פתרון השגיאה מתוך image_389204.png - שימוש ב-slotProps
         slotProps={{
           paper: {
             sx: {
@@ -73,7 +72,6 @@ function Sidebar() {
           }}
           role="presentation"
         >
-          {/* כותרת קטנה ואלגנטית בראש המגירה */}
           <Typography
             variant="subtitle2"
             sx={{
@@ -86,94 +84,49 @@ function Sidebar() {
               fontSize: "0.75rem",
             }}
           >
-            Navigation
+            TaskFlow
           </Typography>
 
           <List
             disablePadding
             sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}
           >
-            {/* פריט: דף הבית */}
-            <ListItem disablePadding>
-              <ListItemButton
-                onClick={() => setIsOpen(false)}
-                sx={{
-                  borderRadius: "12px",
-                  py: 1.2,
-                  px: 2,
-                  color: "text.secondary",
-                  transition: "all 0.2s ease-in-out",
-                  "&:hover": {
-                    bgcolor: "action.hover",
-                    color: "text.primary",
-                    transform: "translateX(4px)", // אפקט תזוזה קטן ויפה ימינה
-                  },
-                }}
-              >
-                {/* פתרון השגיאה מתוך image_383f4a.png - העברת Typography ישירות לתוך ה-primary */}
-                <ListItemText
-                  primary={
-                    <Typography sx={{ fontSize: "0.95rem", fontWeight: "600" }}>
-                      דף הבית
-                    </Typography>
-                  }
-                />
-              </ListItemButton>
-            </ListItem>
-
-            {/* פריט: אודות */}
-            <ListItem disablePadding>
-              <ListItemButton
-                onClick={() => setIsOpen(false)}
-                sx={{
-                  borderRadius: "12px",
-                  py: 1.2,
-                  px: 2,
-                  color: "text.secondary",
-                  transition: "all 0.2s ease-in-out",
-                  "&:hover": {
-                    bgcolor: "action.hover",
-                    color: "text.primary",
-                    transform: "translateX(4px)",
-                  },
-                }}
-              >
-                <ListItemText
-                  primary={
-                    <Typography sx={{ fontSize: "0.95rem", fontWeight: "600" }}>
-                      אודות
-                    </Typography>
-                  }
-                />
-              </ListItemButton>
-            </ListItem>
-
-            {/* פריט: צור קשר */}
-            <ListItem disablePadding>
-              <ListItemButton
-                onClick={() => setIsOpen(false)}
-                sx={{
-                  borderRadius: "12px",
-                  py: 1.2,
-                  px: 2,
-                  color: "text.secondary",
-                  transition: "all 0.2s ease-in-out",
-                  "&:hover": {
-                    bgcolor: "action.hover",
-                    color: "text.primary",
-                    transform: "translateX(4px)",
-                  },
-                }}
-              >
-                <ListItemText
-                  primary={
-                    <Typography sx={{ fontSize: "0.95rem", fontWeight: "600" }}>
-                      צור קשר
-                    </Typography>
-                  }
-                />
-              </ListItemButton>
-            </ListItem>
+            {/* הלולאה החכמה שמציגה את כל הפריטים בצורה דינמית */}
+            {sidebarList.map((item) => (
+              <ListItem key={item.name} disablePadding>
+                <ListItemButton
+                  onClick={() => {
+                    navigate(item.to);
+                    setIsOpen(false);
+                  }}
+                  sx={{
+                    borderRadius: "12px",
+                    py: 1.2,
+                    px: 2,
+                    color: "text.secondary",
+                    transition: "all 0.2s ease-in-out",
+                    "&:hover": {
+                      bgcolor: "action.hover",
+                      color: "text.primary",
+                      transform: "translateX(4px)",
+                    },
+                  }}
+                >
+                  <ListItemIcon sx={{ minWidth: 36, color: "inherit" }}>
+                    {item.icon}
+                  </ListItemIcon>
+                  <ListItemText
+                    primary={
+                      <Typography
+                        sx={{ fontSize: "0.95rem", fontWeight: "600" }}
+                      >
+                        {item.name}
+                      </Typography>
+                    }
+                  />
+                </ListItemButton>
+              </ListItem>
+            ))}
           </List>
         </Box>
       </Drawer>
