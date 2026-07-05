@@ -9,11 +9,11 @@ import {
   Typography,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
-import type { Column } from "../types/Column";
-import type { Task } from "../types/Task";
-import ROUTES from "../router/routes";
+
+import type { Task } from "./Task.type";
+import ROUTES from "../../router/routes";
 import EditIcon from "@mui/icons-material/Edit";
-import TaskFormDialog from "./TaskFormDialog";
+
 import { useState, memo, useContext } from "react";
 import ClearIcon from "@mui/icons-material/Clear";
 import ThumbUpIcon from "@mui/icons-material/ThumbUp";
@@ -21,8 +21,10 @@ import ThumbDownIcon from "@mui/icons-material/ThumbDown";
 import {
   ProjectThemeContext,
   type ThemeContextType,
-} from "../providers/ProjectThemeProvider";
-import { useUser } from "../providers/UserProvider";
+} from "../../providers/ProjectThemeProvider";
+import TaskFormDialog from "./TaskFormDialog";
+import type { Column } from "../Column/Column.type";
+import { useUser } from "../../user/providers/UserProvider";
 
 interface TaskProps {
   task: Task;

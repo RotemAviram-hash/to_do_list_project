@@ -1,8 +1,14 @@
-import { getFirestore, collection, setDoc, getDocs, getDoc, doc } from "firebase/firestore";
-import app from "../config/firebase";
-import {type User } from "../types/User";
+import {
+  getFirestore,
+  collection,
+  setDoc,
+  getDocs,
+  getDoc,
+  doc,
+} from "firebase/firestore";
 
-
+import type { User } from "../types/User";
+import app from "../../config/firebase";
 
 const db = getFirestore(app);
 const usersCollection = collection(db, "users");
@@ -10,7 +16,7 @@ const usersCollection = collection(db, "users");
 export async function getUsers(): Promise<User[]> {
   try {
     const snapshot = await getDocs(usersCollection);
-    return snapshot.docs.map(doc => ({
+    return snapshot.docs.map((doc) => ({
       id: doc.id,
       ...(doc.data() as Omit<User, "id">),
     }));
@@ -41,10 +47,10 @@ export async function addUser(user: User): Promise<string> {
   try {
     // יצירת רפרנס למסמך בקולקשן users עם ה-ID של המשתמש
     const userDocRef = doc(usersCollection, user.id);
-    
+
     // שמירת המסמך ב-Firestore
     await setDoc(userDocRef, user);
-    
+
     // החזרת ה-ID כפי שהפונקציה המקורית עשתה
     return user.id;
   } catch (error) {

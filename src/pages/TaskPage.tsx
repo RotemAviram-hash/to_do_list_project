@@ -13,10 +13,9 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import { useParams, useNavigate } from "react-router-dom";
 import { useCallback, useEffect, useState } from "react";
-import type { Task } from "../types/Task";
+import type { Task } from "../components/Task/Task.type";
 import { getPriorityColor, getStatusColor } from "../utils/tasksHelpers";
-import { getTaskById } from "../services/tasksDataServiceFireBase";
-import ROUTES from "../router/routes";
+import { getTaskById } from "../components/Task/tasksDataServiceFireBase";
 
 export default function TaskPage() {
   const [task, setTask] = useState<Task | null>(null);

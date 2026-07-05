@@ -3,11 +3,12 @@ import EditIcon from "@mui/icons-material/Edit";
 import ClearIcon from "@mui/icons-material/Clear";
 import { useDroppable } from "@dnd-kit/react";
 import { memo } from "react";
-import type { Column as ColumnType } from "../types/Column";
-import type { Task } from "../types/Task";
-import DraggableTaskCard from "./DraggableTaskCard";
+import type { Column as ColumnType } from "./Column.type";
+import type { Task } from "../Task/Task.type";
+
 import StarBorderIcon from "@mui/icons-material/StarBorder";
 import CloseFullscreenRoundedIcon from "@mui/icons-material/CloseFullscreenRounded";
+import DraggableTaskCard from "../Task/DraggableTaskCard";
 interface ColumnProps {
   column: ColumnType;
   tasks: Task[];

@@ -16,7 +16,7 @@ import {
 } from "../../providers/ProjectThemeProvider";
 import { Brightness4, Brightness7 } from "@mui/icons-material";
 import { useContext } from "react";
-import { useUser } from "../../providers/UserProvider";
+import { useUser } from "../../user/providers/UserProvider";
 
 function Header() {
   const navigate = useNavigate();
@@ -37,7 +37,7 @@ function Header() {
         borderColor: "divider",
         color: "text.primary",
         top: 0,
-        zIndex: (theme) => theme.zIndex.drawer + 1,
+        //zIndex: (theme) => theme.zIndex.drawer + 1,
       }}
     >
       <Toolbar

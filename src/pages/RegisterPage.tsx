@@ -1,10 +1,11 @@
-import { Box, Button, TextField, Paper, Container, Grid } from "@mui/material";
+import { Button, TextField, Paper, Container, Grid } from "@mui/material";
 import { useForm } from "react-hook-form";
 import { joiResolver } from "@hookform/resolvers/joi";
 import Joi from "joi";
-import { useUser } from "../providers/UserProvider";
+
 import { Navigate } from "react-router-dom";
 import ROUTES from "../router/routes";
+import { useUser } from "../user/providers/UserProvider";
 
 // 1. הגדרת סכימת הולידציה (נשאר בדיוק אותו דבר)
 const userSchema = Joi.object({

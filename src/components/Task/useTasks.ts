@@ -1,22 +1,22 @@
 import { useState, useCallback, useContext } from "react";
-import type { Task } from "../types/Task";
-import { SnackContext } from "../providers/SnackProvider";
+import type { Task } from "./Task.type";
+import { SnackContext } from "../../providers/SnackProvider";
 import {
   addTask,
   getTasks,
   updateTask,
   deleteTask,
   getTaskById,
-} from "../services/tasksDataServiceFireBase"; // ודא שהנתיב תקין
-import { useUser } from "../providers/UserProvider";
+} from "./tasksDataServiceFireBase"; // ודא שהנתיב תקין
+import { useUser } from "../../user/providers/UserProvider";
 
 function useTasks() {
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [isLoading,setIsLoading] = useState(true);
-  const [error,setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const { raiseSnack } = useContext(SnackContext) as any;
-  const {user}=useUser()
+  const { user } = useUser();
 
   // READ
   const handleGetTasks = useCallback(async () => {
@@ -27,10 +27,8 @@ function useTasks() {
     } catch (e) {
       raiseSnack("error", "התרחשה שגיאה בייבוא הנתונים");
       setError("Error fetching tasks");
-    }
-    finally {     
-     setIsLoading(false);
-
+    } finally {
+      setIsLoading(false);
     }
   }, [raiseSnack]);
 
@@ -124,20 +122,19 @@ function useTasks() {
   // UPDATE - Likes (Optimistic Update)
   const updateLikes = useCallback(
     async (id: string, action: "inc" | "dec") => {
-
       const updatedTask = await getTaskById(id);
       setTasks((prev) => {
-        const task = updatedTask
+        const task = updatedTask;
         if (!task) return prev;
-        const field = action==="inc" ? "likes" : "dislikes";
+        const field = action === "inc" ? "likes" : "dislikes";
         let newLikes = [...task[field]];
-        if(user){
-        let isTheUserAlreadyExists = newLikes.includes(user?.id);
-        if (!isTheUserAlreadyExists) {
-          newLikes.push(user?.id);
-        } else {
-          newLikes = newLikes.filter((likeId) => likeId !== user?.id);
-        }
+        if (user) {
+          let isTheUserAlreadyExists = newLikes.includes(user?.id);
+          if (!isTheUserAlreadyExists) {
+            newLikes.push(user?.id);
+          } else {
+            newLikes = newLikes.filter((likeId) => likeId !== user?.id);
+          }
         }
         // עדכון פיירבייס ברקע
         updateTask(id, { [field]: newLikes }).catch(() => {
@@ -146,7 +143,6 @@ function useTasks() {
 
         // עדכון UI מידי
         return prev.map((t) => (t.id === id ? { ...t, [field]: newLikes } : t));
-       
       });
     },
     [raiseSnack],

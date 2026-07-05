@@ -2,9 +2,10 @@ import { Box, IconButton } from "@mui/material";
 import DragIndicatorIcon from "@mui/icons-material/DragIndicator";
 import { useDraggable } from "@dnd-kit/react";
 import { memo } from "react";
-import type { Column } from "../types/Column";
-import type { Task } from "../types/Task";
+
+import type { Task } from "./Task.type";
 import TaskCard from "./TaskCard";
+import type { Column } from "../Column/Column.type";
 
 interface DraggableTaskCardProps {
   task: Task;

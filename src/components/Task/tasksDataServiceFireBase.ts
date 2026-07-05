@@ -8,8 +8,8 @@ import {
   deleteDoc,
   getDoc,
 } from "firebase/firestore";
-import app from "../config/firebase"; // ודא שהנתיב תואם למיקום הקובץ שלך
-import type { Task } from "../types/Task";
+import app from "../../config/firebase"; // ודא שהנתיב תואם למיקום הקובץ שלך
+import type { Task } from "./Task.type";
 
 // אתחול החיבור למסד הנתונים
 const db = getFirestore(app);
@@ -88,6 +88,3 @@ export const getTaskById = async (
     console.error("Error fetching document:", error);
   }
 };
-
-
-

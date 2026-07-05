@@ -1,13 +1,13 @@
 import { useState, useCallback, useContext } from "react";
-import type { Column } from "../types/Column";
-import { SnackContext } from "../providers/SnackProvider";
+import type { Column } from "./Column.type";
+import { SnackContext } from "../../providers/SnackProvider";
 import {
   addColumn,
   getColumns,
   updateColumn,
   deleteColumn,
-} from "../services/columnsDataServiceFireBase"; // ודא שהקובץ קיים והנתיב תקין
-import { getTasks } from "../services/tasksDataServiceFireBase"; // הקריאה החדשה למשימות
+} from "./columnsDataServiceFireBase"; // ודא שהקובץ קיים והנתיב תקין
+import { getTasks } from "../Task/tasksDataServiceFireBase"; // הקריאה החדשה למשימות
 
 function useColumns() {
   const [columns, setColumns] = useState<Column[]>([]);

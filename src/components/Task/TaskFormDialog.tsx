@@ -9,8 +9,8 @@ import {
   Stack,
 } from "@mui/material";
 import { useForm, Controller } from "react-hook-form";
-import type { Column } from "../types/Column";
-import type { Task } from "../types/Task";
+import type { Column } from "../Column/Column.type";
+import type { Task } from "./Task.type";
 
 interface TaskFormDialogProps {
   open: boolean;

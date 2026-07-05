@@ -8,7 +8,7 @@ import {
   Stack,
 } from "@mui/material";
 import { useForm, Controller } from "react-hook-form";
-import type { Column } from "../types/Column";
+import type { Column } from "./Column.type";
 
 type ColumnFormValues = Pick<Column, "name">;
 

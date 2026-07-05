@@ -3,9 +3,10 @@ import Layout from "./layout/Layout";
 import { BrowserRouter } from "react-router-dom";
 import { ProjectThemeProvider } from "./providers/ProjectThemeProvider";
 import { SnackProvider } from "./providers/SnackProvider";
-import { UserProvider } from "./providers/UserProvider";
+
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import CssBaseline from "@mui/material/CssBaseline";
+import { UserProvider } from "./user/providers/UserProvider";
 
 function App() {
   const queryClient = new QueryClient();

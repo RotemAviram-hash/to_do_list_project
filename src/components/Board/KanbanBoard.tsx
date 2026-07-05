@@ -1,9 +1,9 @@
 import { Box } from "@mui/material";
 import { DragDropProvider } from "@dnd-kit/react";
 import { memo } from "react";
-import type { Column as ColumnType } from "../types/Column";
-import type { Task } from "../types/Task";
-import Column from "./Column";
+import type { Column as ColumnType } from "../Column/Column.type";
+import type { Task } from "../Task/Task.type";
+import Column from "../Column/Column";
 
 interface KanbanBoardProps {
   columns: ColumnType[];

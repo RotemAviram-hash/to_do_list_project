@@ -7,8 +7,8 @@ import {
   updateDoc,
   deleteDoc,
 } from "firebase/firestore";
-import app from "../config/firebase"; // ודא שהנתיב תואם למיקום הקובץ שלך
-import type { Column } from "../types/Column";
+import app from "../../config/firebase"; // ודא שהנתיב תואם למיקום הקובץ שלך
+import type { Column } from "./Column.type";
 // אתחול החיבור למסד הנתונים
 const db = getFirestore(app);
 const columnsCollectionName = "columns";

@@ -3,15 +3,17 @@ import { Box, Fab, Typography, Button } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import CloseIcon from "@mui/icons-material/Close";
 import ViewColumnIcon from "@mui/icons-material/ViewColumn";
-import TaskFormDialog from "../components/TaskFormDialog";
-import ColumnFormDialog from "../components/ColumnFormDialog";
-import KanbanBoard from "../components/KanbanBoard";
-import useTasks from "../hooks/useTasks";
-import useColumns from "../hooks/useColumns";
+
+import KanbanBoard from "../components/Board/KanbanBoard";
+import useTasks from "../components/Task/useTasks";
+import useColumns from "../components/Column/useColumns";
 import { SnackContext } from "../providers/SnackProvider";
-import type { Column } from "../types/Column";
+
 import CircularProgress from "@mui/material/CircularProgress";
-import { useUser } from "../providers/UserProvider";
+import ColumnFormDialog from "../components/Column/ColumnFormDialog";
+import TaskFormDialog from "../components/Task/TaskFormDialog";
+import type { Column } from "../components/Column/Column.type";
+import { useUser } from "../user/providers/UserProvider";
 
 function HomePage() {
   const [isTaskDialogOpen, setIsTaskDialogOpen] = useState(false);
