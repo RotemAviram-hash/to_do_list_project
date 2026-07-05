@@ -17,6 +17,7 @@ import {
 import { Brightness4, Brightness7 } from "@mui/icons-material";
 import { useContext } from "react";
 import { useUser } from "../../user/providers/UserProvider";
+import { UserAvatar } from "../../user";
 
 function Header() {
   const navigate = useNavigate();
@@ -157,6 +158,7 @@ function Header() {
             </IconButton>
           </Box>
         </Box>
+        <UserAvatar />
       </Toolbar>
     </AppBar>
   );
