@@ -8,7 +8,6 @@ import {
 } from "react";
 
 import {
-  getAuth,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signOut,
@@ -16,7 +15,7 @@ import {
 } from "firebase/auth";
 import type { User } from "../types/User";
 import { addUser, getUserById } from "../services/usersDataServiceFireBase";
-import app from "../../config/firebase";
+import { auth } from "../../config/firebase";
 
 const UserContext = createContext<
   | {
@@ -30,7 +29,7 @@ const UserContext = createContext<
 
 function UserProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const auth = getAuth(app);
+
   const signup = useCallback(
     async ({
       email,

@@ -1,4 +1,4 @@
-import {
+/*import {
   Typography,
   Chip,
   Box,
@@ -55,7 +55,7 @@ export default function TaskPage() {
       }}
     >
       <Container maxWidth="sm" dir="rtl">
-        {/* כפתור חזרה מינימליסטי ושקט */}
+        {/* כפתור חזרה מינימליסטי ושקט */ /*
         <Button
           startIcon={
             <ArrowBackIcon sx={{ transform: "scaleX(-1)", ml: 0.5 }} />
@@ -79,7 +79,7 @@ export default function TaskPage() {
             <CircularProgress size={28} thickness={4} />
           </Box>
         ) : task ? (
-          /* כרטיס אחד מהודק, נקי ולא צעקני */
+          /* כרטיס אחד מהודק, נקי ולא צעקני *
           <Paper
             elevation={0}
             sx={{
@@ -90,7 +90,7 @@ export default function TaskPage() {
               borderColor: "divider",
             }}
           >
-            {/* שורת כותרת ותגיות */}
+            {/* שורת כותרת ותגיות *
             <Box
               sx={{
                 display: "flex",
@@ -112,7 +112,7 @@ export default function TaskPage() {
                 {task.title}
               </Typography>
 
-              {/* תגיות קטנות ורגועות (size="small") */}
+              {/* תגיות קטנות ורגועות (size="small") *
               <Box sx={{ display: "flex", gap: 1, flexShrink: 0 }}>
                 <Chip
                   label={task.priority.toUpperCase()}
@@ -142,7 +142,7 @@ export default function TaskPage() {
 
             <Divider sx={{ my: 1.5, opacity: 0.5 }} />
 
-            {/* תיאור המשימה - פונט קריא, בגודל רגוע ובצבע מעט עמום שלא יצעק */}
+            {/* תיאור המשימה - פונט קריא, בגודל רגוע ובצבע מעט עמום שלא יצעק 
             <Typography
               variant="body2"
               sx={{
@@ -156,7 +156,7 @@ export default function TaskPage() {
               {task.description || "אין תיאור זמין למשימה זו."}
             </Typography>
 
-            {/* שורת מידע תחתית (Meta) - נקייה, קטנה ומיושרת בשורה אחת */}
+            {/* שורת מידע תחתית (Meta) - נקייה, קטנה ומיושרת בשורה אחת *
             <Box
               sx={{
                 display: "flex",
@@ -167,7 +167,7 @@ export default function TaskPage() {
                 borderColor: "divider",
               }}
             >
-              {/* תאריך יעד */}
+              {/* תאריך יעד *
               <Box
                 sx={{
                   display: "flex",
@@ -191,7 +191,7 @@ export default function TaskPage() {
                 </Typography>
               </Box>
 
-              {/* שיוך מערכת */}
+              {/* שיוך מערכת *
               <Box
                 sx={{
                   display: "flex",
@@ -239,3 +239,12 @@ export default function TaskPage() {
     </Box>
   );
 }
+*/
+
+import React from "react";
+
+function TaskPage() {
+  return <div>TaskPage</div>;
+}
+
+export default TaskPage;

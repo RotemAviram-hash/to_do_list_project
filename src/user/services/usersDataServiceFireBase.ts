@@ -8,9 +8,8 @@ import {
 } from "firebase/firestore";
 
 import type { User } from "../types/User";
-import app from "../../config/firebase";
+import { db } from "../../config/firebase";
 
-const db = getFirestore(app);
 const usersCollection = collection(db, "users");
 
 export async function getUsers(): Promise<User[]> {
