@@ -12,7 +12,7 @@ import {
 import { useForm, Controller } from "react-hook-form";
 import { joiResolver } from "@hookform/resolvers/joi";
 import Joi from "joi";
-import type { Board } from "../WorkspaceTypes";
+import type { Board } from "../types/Board";
 
 interface BoardFormDialogProps {
   open: boolean;

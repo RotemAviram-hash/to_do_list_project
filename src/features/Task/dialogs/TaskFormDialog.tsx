@@ -11,7 +11,7 @@ import {
 import { useForm, Controller } from "react-hook-form";
 import { joiResolver } from "@hookform/resolvers/joi";
 import Joi from "joi";
-import type { Task, Column } from "../WorkspaceTypes";
+import type { Task, Column } from "../../workspace/types/WorkspaceTypes";
 
 interface TaskFormDialogProps {
   open: boolean;

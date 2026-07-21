@@ -15,8 +15,8 @@ import BookmarkIcon from "@mui/icons-material/Bookmark";
 import BookmarkBorderIcon from "@mui/icons-material/BookmarkBorder";
 import AssignmentIndIcon from "@mui/icons-material/AssignmentInd";
 import DeleteOutlinedIcon from "@mui/icons-material/DeleteOutlined";
-import { type Task } from "../WorkspaceTypes";
-import { currentUserId } from "../../../store/WorkspaceStore";
+import { type Task } from "../../workspace/types/WorkspaceTypes";
+import { currentUserId } from "../../../../store/WorkspaceStore";
 
 interface TaskCardProps {
   task: Task;

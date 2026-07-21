@@ -20,7 +20,7 @@ import AssignmentIndIcon from "@mui/icons-material/AssignmentInd";
 import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
-import type { Board } from "../../WorkspaceTypes";
+import type { Board } from "../../Workspace/workspace/types/WorkspaceTypes";
 
 interface BoardControlsPanelProps {
   boards: Board[];

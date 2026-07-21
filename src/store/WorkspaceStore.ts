@@ -3,7 +3,7 @@ import type {
   Board,
   Column,
   Task,
-} from "../components/Workspace/WorkspaceTypes";
+} from "../features/Workspace/workspace/types/WorkspaceTypes";
 
 // === נתונים פיקטיביים (Mock Data) ===
 const INITIAL_BOARDS: Board[] = [

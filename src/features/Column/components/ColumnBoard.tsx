@@ -20,11 +20,11 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 
-import { TaskCard } from "../Task/TaskCard";
+import { TaskCard } from "../../Task/components/TaskCard";
 
-import type { Column, Task } from "../WorkspaceTypes";
+import type { Column, Task } from "../../workspace/types/WorkspaceTypes";
 
-import { DraggableTaskCard } from "../Task/DraggableTaskCard";
+import { DraggableTaskCard } from "../../Task/components/DraggableTaskCard";
 
 interface BoardColumnProps {
   column: Column;

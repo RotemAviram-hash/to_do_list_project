@@ -1,6 +1,6 @@
 import { useEffect, useState, memo, useContext, useMemo } from "react";
 import { Box, Fab, Typography, Button } from "@mui/material";
-import Workspace from "../components/Workspace/Workspace";
+import Workspace from "../features/Workspace/workspace/components/Workspace";
 
 function WorkspacePage() {
   return (

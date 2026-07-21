@@ -9,10 +9,13 @@ import {
   closestCorners,
   DragOverlay, // <-- נוסיף את זה
 } from "@dnd-kit/core";
-import { ColumnBoard } from "../../Column/ColumnBoard";
-import { TaskCard } from "../../Task/TaskCard"; // <-- נייבא את ה-TaskCard לתצוגת הריחוף
-import { type Column, type Task } from "../../WorkspaceTypes";
-import { currentUserId } from "../../../../store/WorkspaceStore";
+import { ColumnBoard } from "../../Workspace/Column/components/ColumnBoard";
+import { TaskCard } from "../../Workspace/Task/components/TaskCard"; // <-- נייבא את ה-TaskCard לתצוגת הריחוף
+import {
+  type Column,
+  type Task,
+} from "../../Workspace/workspace/types/WorkspaceTypes";
+import { currentUserId } from "../../../store/WorkspaceStore";
 
 interface BoardGridProps {
   columns: Column[];
