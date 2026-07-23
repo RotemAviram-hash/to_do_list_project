@@ -1,7 +1,7 @@
 import { Box, useTheme } from "@mui/material";
-import { useWorkspaceStore } from "../../../../store/WorkspaceStore";
-import { BoardGrid } from "../../../Board/components/BoardGrid";
-import { BoardControlsPanel } from "../../../Board/components/BoardControlsPanel";
+import { useWorkspaceStore } from "../../../store/WorkspaceStore";
+import { BoardControlsPanel } from "../../Board/components/BoardControlsPanel";
+import { BoardGrid } from "../../Board/components/BoardGrid";
 
 export default function Workspace() {
   const theme = useTheme();
