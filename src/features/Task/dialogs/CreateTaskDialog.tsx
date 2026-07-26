@@ -18,6 +18,8 @@ interface CreateTaskDialogProps {
   onClose: () => void;
   columns: Column[];
   users?: User[];
+  boardId?: string; // 👈 הוספנו: מזהה הלוח
+  defaultColumnId?: string; // 👈 הוספנו: מזהה העמודה שנלחצה
 }
 
 const getTodayString = () => new Date().toISOString().split("T")[0];
@@ -27,20 +29,44 @@ export function CreateTaskDialog({
   onClose,
   columns,
   users,
+  boardId,
+  defaultColumnId,
 }: CreateTaskDialogProps) {
   const { addTask } = useTasks();
+
+  // מציאת העמודה הנבחרת או העמודה הראשונה
+  const selectedColumn =
+    columns.find((c) => c.id === defaultColumnId) || columns[0];
+
+  // חילוץ ה-boardId מהעמודה אם לא מועבר מפורשות
+  const effectiveBoardId = boardId || selectedColumn?.boardId || "";
+
   const defaultValues: Task = {
     id: "",
     title: "",
     description: "",
     dueDate: getTodayString(),
-    columnId: columns[0]?.id ?? "",
-    boardId: "",
+    columnId: selectedColumn?.id ?? "",
+    boardId: effectiveBoardId, // 👈 כעת ה-boardId תקין ולא ריק!
     createdBy: "",
     assigneeId: "",
     savedBy: [],
     createdAt: new Date().toISOString(),
     order: 0,
+  };
+
+  // טיפול אסינכרוני בשליחה
+  const handleSubmit = async (data: Task) => {
+    try {
+      const { id, ...taskWithoutId } = data;
+
+      // שולחים את המשימה ללא ה-id הריק
+      await addTask(taskWithoutId as any);
+
+      onClose();
+    } catch (err) {
+      console.error("שגיאה ביצירת משימה:", err);
+    }
   };
 
   return (
@@ -104,10 +130,7 @@ export function CreateTaskDialog({
       <TaskForm
         initialValues={defaultValues}
         columns={columns}
-        onSubmit={(data) => {
-          addTask(data);
-          onClose();
-        }}
+        onSubmit={handleSubmit}
         onClose={onClose}
         submitLabel="צור משימה"
         isEdit={false}

@@ -11,6 +11,7 @@ export function useTasks() {
     setLoading(true);
     setError(null);
 
+    // ה-Listener הזה כבר עושה עבודה מושלמת ומעדכן את המשימות בזמן אמת!
     const unsubscribe = taskService.listenToTasks(
       (updatedTasks) => {
         setTasks(updatedTasks);
@@ -52,50 +53,29 @@ export function useTasks() {
     [],
   );
 
-  // 3. מחיקת משימה עם Optimistic UI Update
+  // 3. מחיקת משימה (הוסר ה-Optimistic UI הידני)
   const deleteTask = useCallback(async (id: string) => {
-    let previousTasks: Task[] = [];
-
-    // עדכון מיידי ב-UI
-    setTasks((prev) => {
-      previousTasks = prev;
-      return prev.filter((task) => task.id !== id);
-    });
-
     try {
       setError(null);
       await taskService.removeTask(id);
     } catch (err: any) {
       console.error("Failed to delete task:", err);
-      setTasks(previousTasks); // שחזור (Rollback) במקרה של שגיאה
       setError(err.message || "שגיאה במחיקת המשימה");
       throw err;
     }
   }, []);
 
-  // 4. העברת משימה לעמודה חדשה עם Optimistic UI Update (מעולה ל-DND!)
+  // 4. העברת משימה לעמודה חדשה (הוסר ה-Optimistic UI הידני)
   const moveTaskToColumn = useCallback(
     async (taskId: string, targetColumnId: string) => {
-      let previousTasks: Task[] = [];
-
-      // עדכון מיידי ב-UI ב-0 מילי-שניות
-      setTasks((prev) => {
-        previousTasks = prev;
-        return prev.map((task) =>
-          task.id === taskId
-            ? { ...task, columnId: targetColumnId as Task["columnId"] }
-            : task,
-        );
-      });
-
       try {
         setError(null);
+        // רק שולחים בקשה לשרת, ה-Listener למעלה יתפוס את השינוי ויעדכן את המסך
         await taskService.editTask(taskId, {
           columnId: targetColumnId as Task["columnId"],
         });
       } catch (err: any) {
         console.error("Failed to move task to column:", err);
-        setTasks(previousTasks); // שחזור (Rollback) במקרה של שגיאה
         setError(err.message || "שגיאה בהעברת המשימה לעמודה החדשה");
         throw err;
       }
@@ -110,6 +90,6 @@ export function useTasks() {
     addTask,
     updateTask,
     deleteTask,
-    moveTaskToColumn, // הוחזר בהצלחה!
+    moveTaskToColumn,
   };
 }

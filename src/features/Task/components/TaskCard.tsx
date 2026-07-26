@@ -38,6 +38,7 @@ interface TaskCardProps {
   columns: Column[];
   borderColor?: string;
   isDragging?: boolean;
+  cardRef?: (node: HTMLElement | null) => void; // מקבל את ה-ref מה-Draggable
 }
 
 function TaskCard({
@@ -45,6 +46,7 @@ function TaskCard({
   columns,
   borderColor = "#1976d2", // צבע ברירת מחדל אם לא מועבר צבע עמודה
   isDragging = false,
+  cardRef,
 }: TaskCardProps) {
   const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
@@ -73,6 +75,7 @@ function TaskCard({
 
   return (
     <Card
+      ref={cardRef} // 👈 פה מולבשת הגרירה על כל הכרטיס!
       sx={{
         borderRadius: 3,
         borderColor: "divider",
@@ -82,6 +85,8 @@ function TaskCard({
         userSelect: "none",
         width: "100%",
         boxSizing: "border-box",
+        cursor: isDragging ? "grabbing" : "grab", // 👈 אינדיקציה ויזואלית לעכבר תופס/גורר
+        opacity: isDragging ? 0.6 : 1,
         transition: isDragging
           ? "none"
           : "transform 0.2s, box-shadow 0.2s, border-color 0.2s",
@@ -123,7 +128,7 @@ function TaskCard({
           <Tooltip title="עריכת משימה">
             <IconButton
               size="small"
-              onPointerDown={(e) => e.stopPropagation()}
+              onPointerDown={(e) => e.stopPropagation()} // מונע מאירוע הגרירה להתחיל בלחיצה על כפתור
               onClick={(e) => {
                 e.stopPropagation();
                 setIsOpen(true);
@@ -145,7 +150,7 @@ function TaskCard({
           <Tooltip title="מחיקת משימה">
             <IconButton
               size="small"
-              onPointerDown={(e) => e.stopPropagation()}
+              onPointerDown={(e) => e.stopPropagation()} // מונע מאירוע הגרירה להתחיל בלחיצה על כפתור
               onClick={(e) => {
                 e.stopPropagation();
                 deleteTask(task.id);
@@ -166,8 +171,9 @@ function TaskCard({
         </Box>
       )}
 
-      {/* קליק על הכרטיס מעביר לעמוד המשימה */}
+      {/* component="div" פותר לחלוטין את שגיאת ה-button בתוך button! */}
       <CardActionArea
+        component="div"
         onClick={() => navigate(ROUTES.TASK_PAGE + task.id)}
         sx={{ borderRadius: 3 }}
       >
@@ -239,7 +245,7 @@ function TaskCard({
                 title={isSavedByMe ? "הסר משימה מהשמורות שלי" : "שמור משימה"}
               >
                 <Button
-                  onPointerDown={(e) => e.stopPropagation()}
+                  onPointerDown={(e) => e.stopPropagation()} // מונע התחלת גרירה בזמן שמירה
                   onClick={handleToggleSave}
                   size="small"
                   startIcon={
