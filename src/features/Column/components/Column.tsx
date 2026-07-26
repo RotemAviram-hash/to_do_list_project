@@ -1,4 +1,4 @@
-import { memo } from "react";
+import React, { memo } from "react";
 import { Paper } from "@mui/material";
 import { useDroppable } from "@dnd-kit/react";
 
@@ -7,27 +7,44 @@ import { ColumnHeader } from "./ColumnHeader";
 import { ColumnDropZone } from "./ColumnDropZone";
 
 // Types
-import type { Column as ColumnType } from "../models/Column";
+import type { Column, ColumnTheme } from "../models/Column";
 import type { Task } from "../../Task/models/Task";
 
+// Hooks
+import { useColumns } from "../hooks/useColumns";
+import { useTasks } from "../../Task/hooks/useTasks";
+
 interface ColumnProps {
-  column: ColumnType;
+  column: Column;
   tasks: Task[];
-  columns: ColumnType[];
-  onEditColumn: (column: ColumnType) => void;
-  onDeleteColumn: (id: string) => void;
-  onAddTask?: (columnId: string) => void;
+  columns: Column[];
+  onOpenAddTaskModal?: (columnId: string) => void;
 }
 
-function Column({
-  column,
-  tasks,
-  columns,
-  onEditColumn,
-  onDeleteColumn,
-  onAddTask,
-}: ColumnProps) {
+function Column({ tasks, columns, column, onOpenAddTaskModal }: ColumnProps) {
   const { ref, isDropTarget } = useDroppable({ id: column.id });
+  const { updateColumn, deleteColumn } = useColumns(column.boardId);
+  const { addTask } = useTasks();
+
+  // טיפול בהוספת משימה לעמודה הזו
+  const handleAddTask = async (columnId: string) => {
+    if (onOpenAddTaskModal) {
+      onOpenAddTaskModal(columnId);
+    } else {
+      // הוספת משימה דיפולטיבית מהירה במידה ואין מודאל
+      await addTask({
+        title: "משימה חדשה",
+        columnId: columnId,
+        boardId: column.boardId,
+        createdAt: new Date().toISOString(),
+      } as any);
+    }
+  };
+
+  // טיפול בשינוי Theme בעמודה
+  const handleThemeChange = async (columnId: string, theme: ColumnTheme) => {
+    await updateColumn(columnId, { theme });
+  };
 
   return (
     <Paper
@@ -50,9 +67,10 @@ function Column({
       <ColumnHeader
         column={column}
         taskCount={tasks.length}
-        onEditColumn={onEditColumn}
-        onDeleteColumn={onDeleteColumn}
-        onAddTask={onAddTask}
+        onEditColumn={updateColumn}
+        onDeleteColumn={deleteColumn}
+        onAddTask={handleAddTask}
+        onThemeChange={handleThemeChange}
       />
 
       <ColumnDropZone dropRef={ref} tasks={tasks} columns={columns} />

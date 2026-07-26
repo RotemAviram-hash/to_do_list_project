@@ -15,7 +15,11 @@ import DeleteOutlinedIcon from "@mui/icons-material/DeleteOutlined";
 import ColorLensOutlinedIcon from "@mui/icons-material/ColorLensOutlined";
 
 // Types
-import type { Column as ColumnType, ColumnTheme } from "../models/Column";
+import type {
+  Column as ColumnType,
+  ColumnTheme,
+  Column,
+} from "../models/Column";
 
 // מיפוי הערכים של ColumnTheme לצבעים ויזואליים ב-UI
 export const THEME_COLOR_MAP: Record<
@@ -33,9 +37,9 @@ export const THEME_COLOR_MAP: Record<
 interface ColumnHeaderProps {
   column: ColumnType;
   taskCount: number;
-  onEditColumn: (column: ColumnType) => void;
+  onEditColumn: (id: string, updatedFields: Partial<Column>) => Promise<void>;
   onDeleteColumn: (id: string) => void;
-  onAddTask?: (columnId: string) => void;
+  onAddTask: (columnId: string) => void;
   onThemeChange?: (columnId: string, theme: ColumnTheme) => void;
 }
 
@@ -62,6 +66,9 @@ export const ColumnHeader: React.FC<ColumnHeaderProps> = ({
   const handleSelectTheme = (themeKey: ColumnTheme) => {
     if (onThemeChange) {
       onThemeChange(column.id, themeKey);
+    } else {
+      // אם לא הועבר handler ייעודי, נשתמש ב-onEditColumn הישיר!
+      onEditColumn(column.id, { theme: themeKey });
     }
     handleCloseColorPicker();
   };
@@ -134,7 +141,7 @@ export const ColumnHeader: React.FC<ColumnHeaderProps> = ({
         <Tooltip title="הוספת משימה">
           <IconButton
             size="small"
-            onClick={() => onAddTask?.(column.id)}
+            onClick={() => onAddTask(column.id)}
             sx={{ p: 0.5 }}
           >
             <AddIcon fontSize="small" />
@@ -154,7 +161,12 @@ export const ColumnHeader: React.FC<ColumnHeaderProps> = ({
         <Tooltip title="עריכת עמודה">
           <IconButton
             size="small"
-            onClick={() => onEditColumn(column)}
+            onClick={() => {
+              const newTitle = prompt("הכנס שם עמודה חדש:", column.title);
+              if (newTitle && newTitle.trim() !== column.title) {
+                onEditColumn(column.id, { title: newTitle.trim() });
+              }
+            }}
             sx={{ p: 0.5 }}
           >
             <EditIcon fontSize="small" />
