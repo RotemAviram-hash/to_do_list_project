@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { Box } from "@mui/material";
 import type { Board } from "../../models/Board";
-import { useBoardFilters } from "../../hooks/useBoardFilters";
 import { useBoards } from "../../hooks/useBoards";
 
 import { BoardOptionsMenu } from "./BoardOptionsMenu";
@@ -16,46 +15,40 @@ interface BoardControlsPanelProps {
   boards: Board[];
   activeBoardId: string;
   onTabChange: (event: React.SyntheticEvent, newValue: string) => void;
-  getColumnCount: (id: string) => number;
+  getColumnCount?: (id: string) => number;
   currentUserId?: string;
+  // מצבי סינון המשימות שמועברים למעלה/למכולה הראשית
+  searchQuery: string;
+  onSearchChange: (val: string) => void;
+  showOnlySaved: boolean;
+  onToggleSaved: (val: boolean) => void;
+  showOnlyMine: boolean;
+  onToggleMine: (val: boolean) => void;
 }
 
 export const BoardControlsPanel: React.FC<BoardControlsPanelProps> = ({
   boards,
   activeBoardId,
   onTabChange,
-  getColumnCount,
+  getColumnCount = () => 0,
   currentUserId = "",
+  searchQuery,
+  onSearchChange,
+  showOnlySaved,
+  onToggleSaved,
+  showOnlyMine,
+  onToggleMine,
 }) => {
-  // 1. שליפת מצבי הסינון מההוק
-  const {
-    searchQuery,
-    setSearchQuery,
-    showOnlySaved,
-    setShowOnlySaved,
-    showOnlyMine,
-    setShowOnlyMine,
-  } = useBoardFilters();
-
-  // 2. הוק הלוחות - לשליפת פונקציית המחיקה
   const { deleteBoard } = useBoards(currentUserId);
-
-  // 3. ניהול מצבי הדיאלוגים (פתוח/סגור)
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
 
-  // מציאת אובייקט הלוח הפעיל הנוכחי לצורך עריכה ומחיקה
   const activeBoard = boards.find((b) => b.id === activeBoardId);
 
-  // 4. טיפול במחיקת הלוח הפעיל
   const handleDeleteActiveBoard = async () => {
     if (!activeBoardId) return;
 
-    const confirmDelete = window.confirm(
-      `האם אתה בטוח שברצונך למחוק את הלוח "${activeBoard?.title || ""}"?`,
-    );
-
-    if (confirmDelete) {
+    if (window.confirm(`האם למחוק את הלוח "${activeBoard?.title || ""}"?`)) {
       try {
         await deleteBoard(activeBoardId);
       } catch (err) {
@@ -74,22 +67,16 @@ export const BoardControlsPanel: React.FC<BoardControlsPanelProps> = ({
         width: "100%",
       }}
     >
-      {/* שורה 1: תפריט 3 נקודות + קופסת הטאבים והפלוס */}
+      {/* שורה 1: טאבים של כל הלוחות */}
       <Box
-        sx={{
-          display: "flex",
-          flexDirection: "row",
-          alignItems: "center",
-          gap: 1,
-          width: "100%",
-        }}
+        sx={{ display: "flex", alignItems: "center", gap: 1, width: "100%" }}
       >
         <BoardOptionsMenu
           onEdit={() => setIsEditOpen(true)}
           onDelete={handleDeleteActiveBoard}
         />
         <BoardTabsBar
-          boards={boards}
+          boards={boards} // 👈 מקבל את כל הלוחות כרגיל!
           activeBoardId={activeBoardId}
           onTabChange={onTabChange}
           getColumnCount={getColumnCount}
@@ -97,37 +84,29 @@ export const BoardControlsPanel: React.FC<BoardControlsPanelProps> = ({
         />
       </Box>
 
-      {/* שורה 2: חיפוש ופילטרים */}
+      {/* שורה 2: סרגל סינון המשימות */}
       <Box
-        sx={{
-          display: "flex",
-          flexDirection: "row",
-          alignItems: "center",
-          gap: 1.5,
-          width: "100%",
-          flexWrap: "nowrap",
-        }}
+        sx={{ display: "flex", alignItems: "center", gap: 1.5, width: "100%" }}
       >
         <BoardSearchBar
           searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
+          onSearchChange={onSearchChange}
         />
         <BoardFilterButtons
           showOnlySaved={showOnlySaved}
-          onToggleSaved={setShowOnlySaved}
+          onToggleSaved={onToggleSaved}
           showOnlyMine={showOnlyMine}
-          onToggleMine={setShowOnlyMine}
+          onToggleMine={onToggleMine}
         />
       </Box>
 
-      {/* דיאלוג יצירת לוח חדש */}
+      {/* דיאלוגים */}
       <CreateBoardDialog
         open={isCreateOpen}
         onClose={() => setIsCreateOpen(false)}
         currentUserId={currentUserId}
       />
 
-      {/* דיאלוג עריכת הלוח הפעיל */}
       {activeBoard && (
         <EditBoardDialog
           open={isEditOpen}

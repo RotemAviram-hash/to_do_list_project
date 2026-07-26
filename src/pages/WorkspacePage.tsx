@@ -1,17 +1,5 @@
 import React, { useState } from "react";
-import {
-  Box,
-  CircularProgress,
-  Typography,
-  Alert,
-  Button,
-  TextField,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-} from "@mui/material";
-import AddIcon from "@mui/icons-material/Add";
+import { Box, CircularProgress, Typography, Alert } from "@mui/material";
 
 // Components
 import { BoardControlsPanel } from "../features/Board/components/BoardControlsPanel/BoardControlsPanel";
@@ -19,44 +7,28 @@ import { KanbanBoardContainer } from "../features/Board/components/KanbanBoard/K
 
 // Custom Hooks
 import { useBoards } from "../features/Board/hooks/useBoards";
-import { useColumns } from "../features/Column/hooks/useColumns";
+import { useColumns } from "../features/Column/hooks/useColumns"; // 👈 1. מייבאים את הוק העמודות
 
 export default function KanbanPreview({ userId }: { userId?: string }) {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [newBoardTitle, setNewBoardTitle] = useState("");
+  // 1. ניהול הסטייטים של סינון המשימות
+  const [searchQuery, setSearchQuery] = useState("");
+  const [showOnlySaved, setShowOnlySaved] = useState(false);
+  const [showOnlyMine, setShowOnlyMine] = useState(false);
 
+  // 2. שליפת הלוחות והלוח הפעיל
   const {
     boards,
     activeBoardId,
     setActiveBoardId,
     loading: loadingBoards,
     error: errorBoards,
-    addBoard,
   } = useBoards(userId);
 
-  const {
-    columns,
-    loading: loadingColumns,
-    error: errorColumns,
-  } = useColumns(activeBoardId || undefined);
+  // 3. שליפת העמודות עבור ספירת העמודות בטאבים
+  const { columns } = useColumns(); // 👈 2. שולפים את כל העמודות
 
-  // הוספת לוח חדש
-  const handleCreateBoard = async () => {
-    if (!newBoardTitle.trim()) return;
-    try {
-      await addBoard({
-        title: newBoardTitle,
-        createdBy: userId || "guest",
-        isPublic: false,
-      });
-      setNewBoardTitle("");
-      setIsModalOpen(false);
-    } catch (err) {
-      console.error("Failed to create board:", err);
-    }
-  };
-
-  if (loadingBoards || loadingColumns) {
+  // 4. מצב טעינה
+  if (loadingBoards) {
     return (
       <Box
         sx={{
@@ -71,10 +43,11 @@ export default function KanbanPreview({ userId }: { userId?: string }) {
     );
   }
 
-  if (errorBoards || errorColumns) {
+  // 5. מצב שגיאה
+  if (errorBoards) {
     return (
       <Box sx={{ p: 4 }}>
-        <Alert severity="error">{errorBoards || errorColumns}</Alert>
+        <Alert severity="error">{errorBoards}</Alert>
       </Box>
     );
   }
@@ -86,14 +59,27 @@ export default function KanbanPreview({ userId }: { userId?: string }) {
         boards={boards}
         activeBoardId={activeBoardId || ""}
         onTabChange={(_, newBoardId) => setActiveBoardId(newBoardId)}
-        getColumnCount={(boardId) =>
-          columns.filter((col) => col.boardId === boardId).length
-        }
+        getColumnCount={(bId) =>
+          columns.filter((c) => c.boardId === bId).length
+        } // 👈 3. מחשבים כמה עמודות יש לכל לוח!
+        currentUserId={userId}
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        showOnlySaved={showOnlySaved}
+        onToggleSaved={setShowOnlySaved}
+        showOnlyMine={showOnlyMine}
+        onToggleMine={setShowOnlyMine}
       />
 
-      {/* תצוגה ראשית: אם יש לוח פעיל מציגים אותו, אחרת מציגים כפתור ליצירת לוח ראשון */}
+      {/* תצוגה ראשית של הלוח הפעיל */}
       {activeBoardId ? (
-        <KanbanBoardContainer boardId={activeBoardId} />
+        <KanbanBoardContainer
+          boardId={activeBoardId}
+          userId={userId}
+          searchQuery={searchQuery}
+          showOnlySaved={showOnlySaved}
+          showOnlyMine={showOnlyMine}
+        />
       ) : (
         <Box
           sx={{
@@ -108,46 +94,8 @@ export default function KanbanPreview({ userId }: { userId?: string }) {
           <Typography variant="h6" color="text.secondary">
             עדיין אין לך לוחות במערכת.
           </Typography>
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={() => setIsModalOpen(true)}
-          >
-            צור את הלוח הראשון שלך
-          </Button>
         </Box>
       )}
-
-      {/* דיאלוג/מודאל ליצירת לוח חדש */}
-      <Dialog
-        open={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        fullWidth
-        maxWidth="xs"
-      >
-        <DialogTitle>יצירת לוח חדש</DialogTitle>
-        <DialogContent>
-          <TextField
-            autoFocus
-            margin="dense"
-            label="שם הלוח"
-            fullWidth
-            variant="outlined"
-            value={newBoardTitle}
-            onChange={(e) => setNewBoardTitle(e.target.value)}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setIsModalOpen(false)}>ביטול</Button>
-          <Button
-            onClick={handleCreateBoard}
-            variant="contained"
-            disabled={!newBoardTitle.trim()}
-          >
-            צור לוח
-          </Button>
-        </DialogActions>
-      </Dialog>
     </Box>
   );
 }
