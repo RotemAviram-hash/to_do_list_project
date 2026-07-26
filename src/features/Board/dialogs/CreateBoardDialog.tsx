@@ -30,7 +30,24 @@ export function CreateBoardDialog({
     description: "",
     isPublic: false,
     createdAt: new Date().toISOString(),
-    createdBy: currentUserId ?? "",
+    createdBy: currentUserId,
+  };
+
+  // 1. טיפול אסינכרוני תקין בשליחה
+  const handleSubmit = async (data: Board) => {
+    try {
+      // 2. הסרת ה-id והתאריכים כדי ש-Firebase/השרת ייצרו אותם בעצמם
+      const { id, createdAt, updatedAt, ...boardData } = data;
+
+      await addBoard({
+        ...boardData,
+        createdBy: boardData.createdBy || currentUserId,
+      });
+
+      onClose();
+    } catch (err) {
+      console.error("שגיאה ביצירת לוח חדש:", err);
+    }
   };
 
   return (
@@ -72,8 +89,10 @@ export function CreateBoardDialog({
             <DashboardIcon />
           </Box>
           <Box>
+            {/* 👈 תוקן: variant הוצא אל מחוץ ל-sx */}
             <Typography
-              sx={{ variant: "h6", fontWeight: "700", lineHeight: 1.2 }}
+              variant="h6"
+              sx={{ fontWeight: "700", lineHeight: 1.2 }}
             >
               לוח חדש
             </Typography>
@@ -91,12 +110,11 @@ export function CreateBoardDialog({
         </IconButton>
       </DialogTitle>
 
+      {/* 3. key=String(open) מבטיח איפוס מלא של הטופס בכל פעם שהדיאלוג נפתח */}
       <BoardForm
+        key={String(open)}
         initialValues={defaultValues}
-        onSubmit={(data) => {
-          addBoard(data);
-          onClose();
-        }}
+        onSubmit={handleSubmit}
         onClose={onClose}
         submitLabel="צור לוח"
         isEdit={false}

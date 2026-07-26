@@ -15,22 +15,41 @@ interface CreateColumnDialogProps {
   open: boolean;
   onClose: () => void;
   boardId: string;
+  currentUserId?: string;
 }
 
 export function CreateColumnDialog({
   open,
   onClose,
   boardId,
+  currentUserId = "",
 }: CreateColumnDialogProps) {
-  const { addColumn } = useColumns();
+  // העברת ה-boardId להוק
+  const { addColumn } = useColumns(boardId);
+
   const defaultValues: Column = {
     id: "",
     title: "",
     theme: "blue",
-    boardId: boardId ?? "",
+    boardId: boardId,
     order: 0,
     createdAt: new Date().toISOString(),
-    createdBy: "", // <-- מזהה המשתמש
+    createdBy: currentUserId,
+  };
+
+  const handleSubmit = async (data: Column) => {
+    try {
+      // הסרת id ו-createdAt כדי שהשרת/Firebase ינפקו בעצמם
+      const { id, createdAt, ...columnData } = data;
+      await addColumn({
+        ...columnData,
+        boardId,
+        createdBy: columnData.createdBy || currentUserId,
+      });
+      onClose();
+    } catch (err) {
+      console.error("שגיאה ביצירת עמודה:", err);
+    }
   };
 
   return (
@@ -73,7 +92,8 @@ export function CreateColumnDialog({
           </Box>
           <Box>
             <Typography
-              sx={{ variant: "h6", fontWeight: "700", lineHeight: 1.2 }}
+              variant="h6"
+              sx={{ fontWeight: "700", lineHeight: 1.2 }}
             >
               עמודה חדשה
             </Typography>
@@ -91,12 +111,11 @@ export function CreateColumnDialog({
         </IconButton>
       </DialogTitle>
 
+      {/* key=String(open) מבטיח שהטופס יתאפס מחדש בכל פתיחה */}
       <ColumnForm
+        key={String(open)}
         initialValues={defaultValues}
-        onSubmit={(data) => {
-          addColumn(data);
-          onClose();
-        }}
+        onSubmit={handleSubmit}
         onClose={onClose}
         submitLabel="צור עמודה"
         isEdit={false}

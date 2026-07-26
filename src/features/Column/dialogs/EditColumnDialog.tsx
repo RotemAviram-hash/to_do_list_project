@@ -15,14 +15,27 @@ interface EditColumnDialogProps {
   open: boolean;
   onClose: () => void;
   column: Column;
+  boardId: string;
 }
 
 export function EditColumnDialog({
   open,
   onClose,
   column,
+  boardId,
 }: EditColumnDialogProps) {
-  const { updateColumn } = useColumns();
+  // העברת ה-boardId להוק
+  const { updateColumn } = useColumns(boardId);
+
+  const handleSubmit = async (data: Column) => {
+    try {
+      const { id, ...updatedFields } = data;
+      await updateColumn(column.id || id, updatedFields);
+      onClose();
+    } catch (err) {
+      console.error("שגיאה בעדכון עמודה:", err);
+    }
+  };
 
   return (
     <Dialog
@@ -64,7 +77,8 @@ export function EditColumnDialog({
           </Box>
           <Box>
             <Typography
-              sx={{ variant: "h6", fontWeight: "700", lineHeight: 1.2 }}
+              variant="h6"
+              sx={{ fontWeight: "700", lineHeight: 1.2 }}
             >
               עריכת עמודה
             </Typography>
@@ -82,12 +96,11 @@ export function EditColumnDialog({
         </IconButton>
       </DialogTitle>
 
+      {/* key מבוסס id עמודה מבטיח רענון נתונים בעת החלפת עמודה ושומר על הנתונים בזמן היציאה */}
       <ColumnForm
+        key={column.id}
         initialValues={column}
-        onSubmit={(data) => {
-          updateColumn(data.id, data);
-          onClose();
-        }}
+        onSubmit={handleSubmit}
         onClose={onClose}
         submitLabel="שמור שינויים"
         isEdit={true}

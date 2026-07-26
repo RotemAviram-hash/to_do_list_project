@@ -1,21 +1,23 @@
-import React from "react";
+import React, { useState } from "react";
 import { Box } from "@mui/material";
 import type { Board } from "../../models/Board";
 import { useBoardFilters } from "../../hooks/useBoardFilters";
+import { useBoards } from "../../hooks/useBoards";
 
 import { BoardOptionsMenu } from "./BoardOptionsMenu";
 import { BoardTabsBar } from "./BoardTabsBar";
 import { BoardSearchBar } from "./BoardSearchBar";
 import { BoardFilterButtons } from "./BoardFilterButtons";
 
+import { CreateBoardDialog } from "../../dialogs/CreateBoardDialog";
+import { EditBoardDialog } from "../../dialogs/EditBoardDialog";
+
 interface BoardControlsPanelProps {
   boards: Board[];
   activeBoardId: string;
   onTabChange: (event: React.SyntheticEvent, newValue: string) => void;
   getColumnCount: (id: string) => number;
-  onEditBoard?: () => void;
-  onDeleteBoard?: () => void;
-  onCreateBoard?: () => void;
+  currentUserId?: string;
 }
 
 export const BoardControlsPanel: React.FC<BoardControlsPanelProps> = ({
@@ -23,11 +25,9 @@ export const BoardControlsPanel: React.FC<BoardControlsPanelProps> = ({
   activeBoardId,
   onTabChange,
   getColumnCount,
-  onEditBoard,
-  onDeleteBoard,
-  onCreateBoard,
+  currentUserId = "",
 }) => {
-  // שליפת מצבי הסינון ישירות מההוק
+  // 1. שליפת מצבי הסינון מההוק
   const {
     searchQuery,
     setSearchQuery,
@@ -36,6 +36,33 @@ export const BoardControlsPanel: React.FC<BoardControlsPanelProps> = ({
     showOnlyMine,
     setShowOnlyMine,
   } = useBoardFilters();
+
+  // 2. הוק הלוחות - לשליפת פונקציית המחיקה
+  const { deleteBoard } = useBoards(currentUserId);
+
+  // 3. ניהול מצבי הדיאלוגים (פתוח/סגור)
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [isEditOpen, setIsEditOpen] = useState(false);
+
+  // מציאת אובייקט הלוח הפעיל הנוכחי לצורך עריכה ומחיקה
+  const activeBoard = boards.find((b) => b.id === activeBoardId);
+
+  // 4. טיפול במחיקת הלוח הפעיל
+  const handleDeleteActiveBoard = async () => {
+    if (!activeBoardId) return;
+
+    const confirmDelete = window.confirm(
+      `האם אתה בטוח שברצונך למחוק את הלוח "${activeBoard?.title || ""}"?`,
+    );
+
+    if (confirmDelete) {
+      try {
+        await deleteBoard(activeBoardId);
+      } catch (err) {
+        console.error("שגיאה במחיקת הלוח:", err);
+      }
+    }
+  };
 
   return (
     <Box
@@ -57,13 +84,16 @@ export const BoardControlsPanel: React.FC<BoardControlsPanelProps> = ({
           width: "100%",
         }}
       >
-        <BoardOptionsMenu onEdit={onEditBoard} onDelete={onDeleteBoard} />
+        <BoardOptionsMenu
+          onEdit={() => setIsEditOpen(true)}
+          onDelete={handleDeleteActiveBoard}
+        />
         <BoardTabsBar
           boards={boards}
           activeBoardId={activeBoardId}
           onTabChange={onTabChange}
           getColumnCount={getColumnCount}
-          onCreateBoard={onCreateBoard}
+          onCreateBoard={() => setIsCreateOpen(true)}
         />
       </Box>
 
@@ -89,6 +119,22 @@ export const BoardControlsPanel: React.FC<BoardControlsPanelProps> = ({
           onToggleMine={setShowOnlyMine}
         />
       </Box>
+
+      {/* דיאלוג יצירת לוח חדש */}
+      <CreateBoardDialog
+        open={isCreateOpen}
+        onClose={() => setIsCreateOpen(false)}
+        currentUserId={currentUserId}
+      />
+
+      {/* דיאלוג עריכת הלוח הפעיל */}
+      {activeBoard && (
+        <EditBoardDialog
+          open={isEditOpen}
+          onClose={() => setIsEditOpen(false)}
+          board={activeBoard}
+        />
+      )}
     </Box>
   );
 };

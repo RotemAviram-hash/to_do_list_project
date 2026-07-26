@@ -18,7 +18,6 @@ interface EditTaskDialogProps {
   onClose: () => void;
   task: Task;
   columns: Column[];
-  handleUpdate: (id: string, updatedFields: Partial<Task>) => Promise<void>;
   users?: User[];
 }
 
@@ -71,7 +70,8 @@ export function EditTaskDialog({
           </Box>
           <Box>
             <Typography
-              sx={{ variant: "h6", fontWeight: "700", lineHeight: 1.2 }}
+              variant="h6"
+              sx={{ fontWeight: "700", lineHeight: 1.2 }}
             >
               עריכת משימה
             </Typography>
@@ -90,6 +90,7 @@ export function EditTaskDialog({
       </DialogTitle>
 
       <TaskForm
+        key={task.id} // 👈 מבטיח עדכון משימות חלק ושמירה על התוכן באנימציית הסגירה
         initialValues={task}
         columns={columns}
         onSubmit={(data) => {

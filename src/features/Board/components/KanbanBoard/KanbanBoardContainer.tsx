@@ -1,25 +1,33 @@
-import React from "react";
+import React, { useState } from "react";
 import { DragDropProvider } from "@dnd-kit/react";
 
 import { BoardHeader } from "./BoardHeader";
 import { BoardColumnsList } from "./BoardColumnsList";
+import { CreateColumnDialog } from "../../../Column/dialogs/CreateColumnDialog.tsx";
+import { EditColumnDialog } from "../../../Column/dialogs/EditColumnDialog";
 import { useColumns } from "../../../Column/hooks/useColumns";
 import { useTasks } from "../../../Task/hooks/useTasks";
 import { useKanbanDrag } from "../../hooks/useKanbanDrag";
+import type { Column } from "../../../Column/models/Column";
 
 interface KanbanBoardContainerProps {
   boardId: string;
+  currentUserId?: string;
 }
 
 export const KanbanBoardContainer: React.FC<KanbanBoardContainerProps> = ({
   boardId,
+  currentUserId = "",
 }) => {
   // 1. הוקים לניהול דאטה
-  const { columns, updateColumn, deleteColumn, addColumn, reorderColumns } =
-    useColumns(boardId);
+  const { columns, reorderColumns } = useColumns(boardId);
   const { tasks, moveTaskToColumn } = useTasks();
 
-  // 2. הוק מרוכז לגרירה
+  // 2. מצבים לפתיחת דיאלוגים של עמודה
+  const [isCreateColumnOpen, setIsCreateColumnOpen] = useState(false);
+  const [editingColumn, setEditingColumn] = useState<Column | null>(null);
+
+  // 3. הוק מרוכז לגרירה
   const { handleDragEnd } = useKanbanDrag({
     columns,
     tasks,
@@ -30,9 +38,7 @@ export const KanbanBoardContainer: React.FC<KanbanBoardContainerProps> = ({
   return (
     <DragDropProvider onDragEnd={handleDragEnd}>
       <BoardHeader
-        onAddColumn={() =>
-          addColumn({ title: "עמודה חדשה", boardId, order: columns.length })
-        }
+        onAddColumn={() => setIsCreateColumnOpen(true)}
         isPublic={false}
         onTogglePrivacy={() => {}}
         members={[]}
@@ -40,10 +46,26 @@ export const KanbanBoardContainer: React.FC<KanbanBoardContainerProps> = ({
 
       <BoardColumnsList
         columns={columns}
-        tasks={tasks.filter((t) => t.boardId === boardId)} // סינון לפי הלוח הנוכחי
-        onEditColumn={(col) => updateColumn(col.id, col)}
-        onDeleteColumn={(id) => deleteColumn(id)}
+        tasks={tasks.filter((t) => t.boardId === boardId)}
       />
+
+      {/* דיאלוג יצירת עמודה חדשה */}
+      <CreateColumnDialog
+        open={isCreateColumnOpen}
+        onClose={() => setIsCreateColumnOpen(false)}
+        boardId={boardId}
+        currentUserId={currentUserId}
+      />
+
+      {/* דיאלוג עריכת עמודה */}
+      {editingColumn && (
+        <EditColumnDialog
+          open={Boolean(editingColumn)}
+          onClose={() => setEditingColumn(null)}
+          column={editingColumn}
+          boardId={boardId}
+        />
+      )}
     </DragDropProvider>
   );
 };

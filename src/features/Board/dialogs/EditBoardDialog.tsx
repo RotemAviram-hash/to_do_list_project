@@ -24,6 +24,18 @@ export function EditBoardDialog({
 }: EditBoardDialogProps) {
   const { updateBoard } = useBoards();
 
+  // 1. טיפול אסינכרוני נקי בעדכון
+  const handleSubmit = async (data: Board) => {
+    try {
+      // מפרידים את ה-id משאר השדות ומעדכנים
+      const { id, ...updatedFields } = data;
+      await updateBoard(board.id || id, updatedFields);
+      onClose();
+    } catch (err) {
+      console.error("שגיאה בעדכון הלוח:", err);
+    }
+  };
+
   return (
     <Dialog
       open={open}
@@ -64,7 +76,8 @@ export function EditBoardDialog({
           </Box>
           <Box>
             <Typography
-              sx={{ variant: "h6", fontWeight: "700", lineHeight: 1.2 }}
+              variant="h6"
+              sx={{ fontWeight: "700", lineHeight: 1.2 }}
             >
               עריכת לוח
             </Typography>
@@ -82,12 +95,11 @@ export function EditBoardDialog({
         </IconButton>
       </DialogTitle>
 
+      {/* key={board.id} מבטיח טעינה מחדש נקייה בעת החלפת לוח ושומר על הנתונים בזמן היציאה */}
       <BoardForm
+        key={board.id}
         initialValues={board}
-        onSubmit={(data) => {
-          updateBoard(data.id, data);
-          onClose();
-        }}
+        onSubmit={handleSubmit}
         onClose={onClose}
         submitLabel="שמור שינויים"
         isEdit={true}

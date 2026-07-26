@@ -18,8 +18,8 @@ interface CreateTaskDialogProps {
   onClose: () => void;
   columns: Column[];
   users?: User[];
-  boardId?: string; // 👈 הוספנו: מזהה הלוח
-  defaultColumnId?: string; // 👈 הוספנו: מזהה העמודה שנלחצה
+  boardId?: string;
+  defaultColumnId?: string;
 }
 
 const getTodayString = () => new Date().toISOString().split("T")[0];
@@ -34,11 +34,9 @@ export function CreateTaskDialog({
 }: CreateTaskDialogProps) {
   const { addTask } = useTasks();
 
-  // מציאת העמודה הנבחרת או העמודה הראשונה
   const selectedColumn =
     columns.find((c) => c.id === defaultColumnId) || columns[0];
 
-  // חילוץ ה-boardId מהעמודה אם לא מועבר מפורשות
   const effectiveBoardId = boardId || selectedColumn?.boardId || "";
 
   const defaultValues: Task = {
@@ -47,7 +45,7 @@ export function CreateTaskDialog({
     description: "",
     dueDate: getTodayString(),
     columnId: selectedColumn?.id ?? "",
-    boardId: effectiveBoardId, // 👈 כעת ה-boardId תקין ולא ריק!
+    boardId: effectiveBoardId,
     createdBy: "",
     assigneeId: "",
     savedBy: [],
@@ -55,14 +53,10 @@ export function CreateTaskDialog({
     order: 0,
   };
 
-  // טיפול אסינכרוני בשליחה
   const handleSubmit = async (data: Task) => {
     try {
       const { id, ...taskWithoutId } = data;
-
-      // שולחים את המשימה ללא ה-id הריק
       await addTask(taskWithoutId as any);
-
       onClose();
     } catch (err) {
       console.error("שגיאה ביצירת משימה:", err);
@@ -109,7 +103,8 @@ export function CreateTaskDialog({
           </Box>
           <Box>
             <Typography
-              sx={{ variant: "h6", fontWeight: "700", lineHeight: 1.2 }}
+              variant="h6"
+              sx={{ fontWeight: "700", lineHeight: 1.2 }}
             >
               משימה חדשה
             </Typography>
@@ -128,6 +123,7 @@ export function CreateTaskDialog({
       </DialogTitle>
 
       <TaskForm
+        key={open ? `open-${defaultColumnId || "default"}` : "closed"} // 👈 המפתח שמבטיח ריענון בפתיחה ושומר על המידע באנימציית הסגירה
         initialValues={defaultValues}
         columns={columns}
         onSubmit={handleSubmit}

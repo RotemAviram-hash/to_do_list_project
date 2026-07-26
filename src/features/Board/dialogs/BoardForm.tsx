@@ -32,7 +32,7 @@ const boardSchema = Joi.object<Board>({
   isPublic: Joi.boolean().default(false),
   createdAt: Joi.string().allow(""),
   createdBy: Joi.string().allow(""),
-});
+}).unknown(true); // 👈 מאפשר מאפיינים נוספים של האובייקט ללא הכשלת הווילדציה
 
 export interface BoardFormProps {
   initialValues: Board;
@@ -49,7 +49,7 @@ export function BoardForm({
   submitLabel,
   isEdit = false,
 }: BoardFormProps) {
-  // 2. חיבור Joi Resolver ל-React Hook Form
+  // 2. חיבור Joi Resolver ל-React Hook Form עם defaultValues יציב
   const {
     control,
     handleSubmit,
@@ -70,6 +70,7 @@ export function BoardForm({
             render={({ field, fieldState: { error } }) => (
               <TextField
                 {...field}
+                value={field.value || ""}
                 label="שם הלוח *"
                 fullWidth
                 error={!!error}
@@ -127,8 +128,8 @@ export function BoardForm({
               <FormControlLabel
                 control={
                   <Checkbox
-                    {...field}
-                    checked={field.value}
+                    checked={!!field.value}
+                    onChange={(e) => field.onChange(e.target.checked)}
                     icon={<PublicIcon color="disabled" />}
                     checkedIcon={<PublicIcon color="primary" />}
                   />

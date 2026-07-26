@@ -7,15 +7,11 @@ import Column from "../../../Column/components/Column";
 interface BoardColumnsListProps {
   columns: ColumnType[];
   tasks: Task[];
-  onEditColumn: (column: ColumnType) => void;
-  onDeleteColumn: (id: string) => void;
 }
 
 export const BoardColumnsList: React.FC<BoardColumnsListProps> = ({
   columns,
   tasks,
-  onEditColumn,
-  onDeleteColumn,
 }) => {
   const theme = useTheme();
   const isDark = theme.palette.mode === "dark";
@@ -59,12 +55,11 @@ export const BoardColumnsList: React.FC<BoardColumnsListProps> = ({
             flexShrink: 0,
           }}
         >
+          {/* מגישים ל-Column רק את ה-Props שהוא באמת צריך! */}
           <Column
             column={column}
             tasks={tasks.filter((t) => t.columnId === column.id)}
             columns={columns}
-            onEditColumn={onEditColumn}
-            onDeleteColumn={onDeleteColumn}
           />
         </Box>
       ))}

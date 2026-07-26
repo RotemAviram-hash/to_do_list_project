@@ -15,20 +15,44 @@ import PersonIcon from "@mui/icons-material/Person";
 import SaveIcon from "@mui/icons-material/Save";
 import AddTaskIcon from "@mui/icons-material/AddTask";
 import { useForm, Controller } from "react-hook-form";
+import { joiResolver } from "@hookform/resolvers/joi";
+import Joi from "joi";
 import type { Column } from "../../Column";
 import type { Task } from "../models/Task";
 import type { User } from "../../../user";
 
-// טיפוס בסיסי למשתמשים (התאם לפי המודל הקיים אצלך)
 export interface UserOption {
   id: string;
   name: string;
 }
 
+// 1. הגדרת סכמת הוולידציה עבור משימה
+const taskSchema = Joi.object<Task>({
+  id: Joi.string().allow(""),
+  title: Joi.string().trim().min(2).max(150).required().messages({
+    "string.empty": "כותרת המשימה היא שדה חובה",
+    "string.min": "כותרת המשימה חייבת להכיל לפחות 2 תווים",
+    "string.max": "כותרת המשימה לא יכולה לעבור 150 תווים",
+  }),
+  description: Joi.string().allow("").max(1000).messages({
+    "string.max": "התיאור אינו יכול לעבור 1000 תווים",
+  }),
+  columnId: Joi.string().required().messages({
+    "string.empty": "יש לבחור עמודה",
+    "any.required": "יש לבחור עמודה",
+  }),
+  assigneeId: Joi.string().allow(""),
+  dueDate: Joi.string().allow(""),
+  boardId: Joi.string().allow(""),
+  order: Joi.number().optional(),
+  createdAt: Joi.string().allow(""),
+  createdBy: Joi.string().allow(""),
+}).unknown(true);
+
 interface TaskFormProps {
   initialValues: Task;
   columns: Column[];
-  users?: User[]; // הרשימה של המשתמשים לבחירה
+  users?: User[];
   onSubmit: (data: Task) => void;
   onClose: () => void;
   submitLabel: string;
@@ -44,7 +68,13 @@ export function TaskForm({
   submitLabel,
   isEdit = false,
 }: TaskFormProps) {
-  const { control, handleSubmit } = useForm<Task>({
+  // 2. חיבור Joi Resolver ל-React Hook Form
+  const {
+    control,
+    handleSubmit,
+    formState: { isSubmitting },
+  } = useForm<Task>({
+    resolver: joiResolver(taskSchema),
     defaultValues: initialValues,
   });
 
@@ -52,15 +82,15 @@ export function TaskForm({
     <form onSubmit={handleSubmit(onSubmit)}>
       <DialogContent dividers sx={{ borderColor: "divider", py: 3 }}>
         <Stack spacing={2.5}>
-          {/* 1. כותרת המשימה (title) */}
+          {/* 1. כותרת המשימה */}
           <Controller
             name="title"
             control={control}
-            rules={{ required: "זהו שדה חובה" }}
             render={({ field, fieldState: { error } }) => (
               <TextField
                 {...field}
-                label="כותרת המשימה"
+                value={field.value || ""}
+                label="כותרת המשימה *"
                 fullWidth
                 error={!!error}
                 helperText={error?.message}
@@ -78,17 +108,20 @@ export function TaskForm({
             )}
           />
 
-          {/* 2. תיאור המשימה (description) */}
+          {/* 2. תיאור המשימה */}
           <Controller
             name="description"
             control={control}
-            render={({ field }) => (
+            render={({ field, fieldState: { error } }) => (
               <TextField
                 {...field}
-                label="תיאור המשימה"
+                value={field.value || ""}
+                label="תיאור המשימה (אופציונלי)"
                 fullWidth
                 multiline
                 rows={3}
+                error={!!error}
+                helperText={error?.message}
                 slotProps={{
                   input: {
                     startAdornment: (
@@ -106,18 +139,17 @@ export function TaskForm({
             )}
           />
 
-          {/* 3. שורה כפולה: עמודה (columnId) ואחראי (assigneeId) */}
+          {/* 3. עמודה ואחראי */}
           <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
-            {/* עמודה / סטטוס */}
             <Controller
               name="columnId"
               control={control}
-              rules={{ required: "יש לבחור עמודה" }}
               render={({ field, fieldState: { error } }) => (
                 <TextField
                   {...field}
+                  value={field.value || ""}
                   select
-                  label="עמודה / סטטוס"
+                  label="עמודה / סטטוס *"
                   fullWidth
                   error={!!error}
                   helperText={error?.message}
@@ -141,13 +173,13 @@ export function TaskForm({
               )}
             />
 
-            {/* מוקצה ל... / אחראי (assigneeId) */}
             <Controller
               name="assigneeId"
               control={control}
               render={({ field }) => (
                 <TextField
                   {...field}
+                  value={field.value || ""}
                   select
                   label="אחראי משימה"
                   fullWidth
@@ -167,7 +199,7 @@ export function TaskForm({
                   </MenuItem>
                   {users.map((user) => (
                     <MenuItem key={user.id} value={user.id}>
-                      {user.firstName + user.lastName}
+                      {`${user.firstName} ${user.lastName}`}
                     </MenuItem>
                   ))}
                 </TextField>
@@ -175,13 +207,14 @@ export function TaskForm({
             />
           </Stack>
 
-          {/* 4. תאריך יעד (dueDate) */}
+          {/* 4. תאריך יעד */}
           <Controller
             name="dueDate"
             control={control}
             render={({ field, fieldState: { error } }) => (
               <TextField
                 {...field}
+                value={field.value || ""}
                 label="תאריך יעד"
                 type="date"
                 fullWidth
@@ -204,10 +237,10 @@ export function TaskForm({
         </Stack>
       </DialogContent>
 
-      {/* כפתורי שמירה וביטול */}
       <DialogActions sx={{ pt: 2, pb: 1, px: 3 }}>
         <Button
           onClick={onClose}
+          disabled={isSubmitting}
           color="inherit"
           sx={{ borderRadius: "10px", fontWeight: 600, px: 3 }}
         >
@@ -216,6 +249,7 @@ export function TaskForm({
         <Button
           type="submit"
           variant="contained"
+          disabled={isSubmitting}
           color={isEdit ? "primary" : "success"}
           startIcon={isEdit ? <SaveIcon /> : <AddTaskIcon />}
           sx={{
@@ -229,7 +263,7 @@ export function TaskForm({
             textTransform: "none",
           }}
         >
-          {submitLabel}
+          {isSubmitting ? "שומר..." : submitLabel}
         </Button>
       </DialogActions>
     </form>
