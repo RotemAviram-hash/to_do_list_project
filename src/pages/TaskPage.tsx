@@ -1,4 +1,4 @@
-/*import {
+import {
   Typography,
   Chip,
   Box,
@@ -13,38 +13,40 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import { useParams, useNavigate } from "react-router-dom";
 import { useCallback, useEffect, useState } from "react";
-import type { Task } from "../components/Task/Task.type";
-import { getPriorityColor, getStatusColor } from "../utils/tasksHelpers";
-import { getTaskById } from "../components/Task/tasksDataServiceFireBase";
+import type { Task } from "../features/Task/models/Task";
+
+// פונקציית עזר להמרת כל פורמט תאריך למחרוזת מוצגת בטוחה
+const formatDate = (dateValue: any): string => {
+  if (!dateValue) return "לא הוגדר";
+
+  // מקרה 1: Firebase Timestamp (מכיל אובייקט עם seconds)
+  if (typeof dateValue === "object" && "seconds" in dateValue) {
+    return new Date(dateValue.seconds * 1000).toLocaleDateString("en-GB");
+  }
+
+  // מקרה 2: אובייקט Date של JS
+  if (dateValue instanceof Date) {
+    return dateValue.toLocaleDateString("en-GB");
+  }
+
+  // מקרה 3: מחרוזת (למשל "2026-03-30" או ISO String)
+  if (typeof dateValue === "string") {
+    const parsedDate = new Date(dateValue);
+    // בדיקה שהמחרוזת אכן המירה לתאריך תקין
+    if (!isNaN(parsedDate.getTime())) {
+      return parsedDate.toLocaleDateString("en-GB");
+    }
+    return dateValue; // אם זו כבר מחרוזת מוכנה לתצוגה
+  }
+
+  return String(dateValue);
+};
 
 export default function TaskPage() {
   const [task, setTask] = useState<Task | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const { id } = useParams();
   const navigate = useNavigate();
-
-  const handleGetTask = useCallback(async () => {
-    if (id) {
-      setLoading(true);
-      try {
-        const savedTask = await getTaskById(id);
-        if (savedTask) {
-          savedTask.dueDate = new Date(
-            (savedTask.dueDate as any).seconds * 1000,
-          );
-          setTask(savedTask);
-        }
-      } catch (e) {
-        console.log("tasks is not a valid json", e);
-      } finally {
-        setLoading(false);
-      }
-    }
-  }, [id]);
-
-  useEffect(() => {
-    handleGetTask();
-  }, [handleGetTask]);
 
   return (
     <Box
@@ -55,7 +57,7 @@ export default function TaskPage() {
       }}
     >
       <Container maxWidth="sm" dir="rtl">
-        {/* כפתור חזרה מינימליסטי ושקט */ /*
+        {/* כפתור חזרה */}
         <Button
           startIcon={
             <ArrowBackIcon sx={{ transform: "scaleX(-1)", ml: 0.5 }} />
@@ -79,7 +81,6 @@ export default function TaskPage() {
             <CircularProgress size={28} thickness={4} />
           </Box>
         ) : task ? (
-          /* כרטיס אחד מהודק, נקי ולא צעקני *
           <Paper
             elevation={0}
             sx={{
@@ -90,11 +91,11 @@ export default function TaskPage() {
               borderColor: "divider",
             }}
           >
-            {/* שורת כותרת ותגיות *
+            {/* כותרת */}
             <Box
               sx={{
                 display: "flex",
-                justifyContent: "space-between",
+                justify: "space-between",
                 alignItems: "center",
                 gap: 2,
                 mb: 1.5,
@@ -111,38 +112,11 @@ export default function TaskPage() {
               >
                 {task.title}
               </Typography>
-
-              {/* תגיות קטנות ורגועות (size="small") *
-              <Box sx={{ display: "flex", gap: 1, flexShrink: 0 }}>
-                <Chip
-                  label={task.priority.toUpperCase()}
-                  color={getPriorityColor(task.priority)}
-                  variant="outlined"
-                  size="small"
-                  sx={{
-                    fontWeight: "600",
-                    borderRadius: "4px",
-                    fontSize: "0.75rem",
-                    height: "20px",
-                  }}
-                />
-                <Chip
-                  label={task.status.toUpperCase()}
-                  color={getStatusColor(task.status)}
-                  size="small"
-                  sx={{
-                    fontWeight: "600",
-                    borderRadius: "4px",
-                    fontSize: "0.75rem",
-                    height: "20px",
-                  }}
-                />
-              </Box>
             </Box>
 
             <Divider sx={{ my: 1.5, opacity: 0.5 }} />
 
-            {/* תיאור המשימה - פונט קריא, בגודל רגוע ובצבע מעט עמום שלא יצעק 
+            {/* תיאור */}
             <Typography
               variant="body2"
               sx={{
@@ -156,7 +130,7 @@ export default function TaskPage() {
               {task.description || "אין תיאור זמין למשימה זו."}
             </Typography>
 
-            {/* שורת מידע תחתית (Meta) - נקייה, קטנה ומיושרת בשורה אחת *
+            {/* שורת מידע תחתית */}
             <Box
               sx={{
                 display: "flex",
@@ -167,7 +141,7 @@ export default function TaskPage() {
                 borderColor: "divider",
               }}
             >
-              {/* תאריך יעד *
+              {/* תאריך יעד - שימוש בפונקציית העזר הבטוחה */}
               <Box
                 sx={{
                   display: "flex",
@@ -187,11 +161,11 @@ export default function TaskPage() {
                   variant="caption"
                   sx={{ fontWeight: "500", display: "block" }}
                 >
-                  תאריך יעד: {task.dueDate.toLocaleDateString("en-GB")}
+                  תאריך יעד: {formatDate(task.dueDate)}
                 </Typography>
               </Box>
 
-              {/* שיוך מערכת *
+              {/* שיוך מערכת */}
               <Box
                 sx={{
                   display: "flex",
@@ -239,12 +213,3 @@ export default function TaskPage() {
     </Box>
   );
 }
-*/
-
-import React from "react";
-
-function TaskPage() {
-  return <div>TaskPage</div>;
-}
-
-export default TaskPage;

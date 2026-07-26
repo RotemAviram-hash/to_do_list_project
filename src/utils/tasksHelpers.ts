@@ -1,5 +1,5 @@
-import type { Column } from "../components/Column/Column.type";
-import type { Task } from "../components/Task/Task.type";
+import type { Column } from "../features/Column/models/Column";
+import type { Task } from "../features/Task/models/Task";
 
 export const getColumnName = (columnId: string, columns: Column[]) => {
   return columns.find((c) => c.id === columnId)?.name ?? columnId;

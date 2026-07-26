@@ -1,17 +1,18 @@
 export interface Task {
-  id: string;
+  id: string; //פנימי
   columnId: string;
+  boardId: string;
 
   title: string;
   description: string;
 
-  createdBy: string;
+  createdBy: string; //פנימי
   assigneeId: string;
 
   savedBy: string[];
 
-  createdAt: string;
+  createdAt: string; //פנימי
   dueDate: string;
 
-  order: number;
+  order: number; //פנימי
 }

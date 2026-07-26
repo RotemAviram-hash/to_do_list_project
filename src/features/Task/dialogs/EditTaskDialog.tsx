@@ -1,0 +1,106 @@
+import {
+  Dialog,
+  DialogTitle,
+  IconButton,
+  Typography,
+  Box,
+} from "@mui/material";
+import CloseIcon from "@mui/icons-material/Close";
+import EditNoteIcon from "@mui/icons-material/EditNote";
+import type { Column } from "../../Column";
+import type { Task } from "../models/Task";
+import { TaskForm } from "./TaskForm";
+import type { User } from "../../../user/types/User";
+import { useTasks } from "../hooks/useTasks";
+
+interface EditTaskDialogProps {
+  open: boolean;
+  onClose: () => void;
+  task: Task;
+  columns: Column[];
+  handleUpdate: (id: string, updatedFields: Partial<Task>) => Promise<void>;
+  users?: User[];
+}
+
+export function EditTaskDialog({
+  open,
+  onClose,
+  task,
+  columns,
+  users,
+}: EditTaskDialogProps) {
+  const { updateTask } = useTasks();
+
+  return (
+    <Dialog
+      open={open}
+      onClose={onClose}
+      fullWidth
+      maxWidth="sm"
+      slotProps={{
+        paper: {
+          sx: {
+            borderRadius: "20px",
+            p: 1,
+            boxShadow: "0px 10px 35px rgba(0,0,0,0.08)",
+          },
+        },
+      }}
+    >
+      <DialogTitle
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          pb: 1.5,
+          pt: 1,
+        }}
+      >
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+          <Box
+            sx={{
+              bgcolor: (theme) => theme.palette.primary.main + "15",
+              color: "primary.main",
+              p: 1.2,
+              borderRadius: "14px",
+              display: "flex",
+              alignItems: "center",
+            }}
+          >
+            <EditNoteIcon />
+          </Box>
+          <Box>
+            <Typography
+              sx={{ variant: "h6", fontWeight: "700", lineHeight: 1.2 }}
+            >
+              עריכת משימה
+            </Typography>
+            <Typography variant="caption" color="text.secondary">
+              עדכן את פרטי המשימה הקיימת
+            </Typography>
+          </Box>
+        </Box>
+        <IconButton
+          onClick={onClose}
+          size="small"
+          sx={{ color: "text.secondary" }}
+        >
+          <CloseIcon fontSize="small" />
+        </IconButton>
+      </DialogTitle>
+
+      <TaskForm
+        initialValues={task}
+        columns={columns}
+        onSubmit={(data) => {
+          updateTask(data.id, data);
+          onClose();
+        }}
+        onClose={onClose}
+        submitLabel="שמור שינויים"
+        isEdit={true}
+        users={users}
+      />
+    </Dialog>
+  );
+}

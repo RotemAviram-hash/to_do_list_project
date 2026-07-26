@@ -1,47 +1,46 @@
-import React from "react";
-import { useSortable } from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
+import { Box, IconButton } from "@mui/material";
+import DragIndicatorIcon from "@mui/icons-material/DragIndicator";
+import { useDraggable } from "@dnd-kit/react";
+import { memo } from "react";
 
-// מגדירים ממשק לפרופס שהילד (TaskCard) יכול לקבל
-interface ChildProps {
-  isDragging?: boolean;
-}
+import TaskCard from "./TaskCard";
+import type { Column } from "../../Column";
+import type { Task } from "../models/Task";
 
 interface DraggableTaskCardProps {
-  id: string;
-  // אנחנו מגדירים ש-children הוא אלמנט React שמסוגל לקבל את ה-ChildProps שלנו
-  children: React.ReactElement<ChildProps>;
+  task: Task;
+  columns: Column[];
 }
 
-export const DraggableTaskCard: React.FC<DraggableTaskCardProps> = ({
-  id,
-  children,
-}) => {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id });
-
-  const style: React.CSSProperties = {
-    transform: CSS.Translate.toString(transform),
-    transition: transition || undefined,
-    opacity: isDragging ? 0.4 : 1,
-    cursor: isDragging ? "grabbing" : "grab",
-    touchAction: "none",
-    width: "100%",
-    boxSizing: "border-box",
-  };
-
-  // עכשיו TypeScript יודע בוודאות שהילד מוכן לקבל את הפרופ isDragging
-  const childWithProps = React.cloneElement(children, { isDragging });
+function DraggableTaskCard({ task, columns }: DraggableTaskCardProps) {
+  const { ref, handleRef, isDragging } = useDraggable({
+    id: task.id,
+    data: { columnId: task.columnId },
+  });
 
   return (
-    <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
-      {childWithProps}
-    </div>
+    <Box
+      ref={ref}
+      sx={{
+        opacity: isDragging ? 0.5 : 1,
+        display: "flex",
+        gap: 0.5,
+        alignItems: "flex-start",
+      }}
+    >
+      <IconButton
+        ref={handleRef}
+        size="small"
+        aria-label="גרור משימה"
+        sx={{ mt: 1, cursor: "grab" }}
+      >
+        <DragIndicatorIcon />
+      </IconButton>
+      <Box sx={{ flex: 1, minWidth: 0 }}>
+        <TaskCard task={task} columns={columns} />
+      </Box>
+    </Box>
   );
-};
+}
+
+export default memo(DraggableTaskCard);
