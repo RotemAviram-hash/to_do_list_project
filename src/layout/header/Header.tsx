@@ -16,8 +16,8 @@ import {
 } from "../../providers/ProjectThemeProvider";
 import { Brightness4, Brightness7 } from "@mui/icons-material";
 import { useContext } from "react";
-import { useUser } from "../../user/providers/UserProvider";
-import { UserAvatar } from "../../user";
+import { useUser } from "../../features/user/providers/UserProvider";
+import { UserAvatar } from "../../features/user";
 
 function Header() {
   const navigate = useNavigate();

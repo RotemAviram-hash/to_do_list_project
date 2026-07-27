@@ -6,6 +6,7 @@ import { BoardColumnsList } from "./BoardColumnsList";
 import { CreateColumnDialog } from "../../../Column/dialogs/CreateColumnDialog";
 import { EditColumnDialog } from "../../../Column/dialogs/EditColumnDialog";
 
+// הוקים (ללא useBoards!)
 import { useColumns } from "../../../Column/hooks/useColumns";
 import { useTasks } from "../../../Task/hooks/useTasks";
 import { useKanbanDrag } from "../../hooks/useKanbanDrag";
@@ -15,8 +16,8 @@ import type { Column } from "../../../Column/models/Column";
 
 interface KanbanBoardContainerProps {
   boardId: string;
-  isPublic?: boolean; // 👈 Prop חדש עבור מצב הפרטיות
-  onTogglePrivacy?: () => void; // 👈 Prop חדש בלחיצה על שינוי פרטיות
+  isPublic: boolean; // 👈 מקבל מ-KanbanPreview
+  onTogglePrivacy: () => void; // 👈 מקבל מ-KanbanPreview
   userId?: string;
   searchQuery?: string;
   showOnlySaved?: boolean;
@@ -25,32 +26,30 @@ interface KanbanBoardContainerProps {
 
 export const KanbanBoardContainer: React.FC<KanbanBoardContainerProps> = ({
   boardId,
-  isPublic = false,
-  onTogglePrivacy = () => {},
+  isPublic,
+  onTogglePrivacy,
   userId = "",
   searchQuery = "",
   showOnlySaved = false,
   showOnlyMine = false,
 }) => {
-  // 1. הוקים לניהול דאטה של עמודות ומשימות בלבד
+  // 1. ניהול עמודות ומשימות של הלוח הנוכחי בלבד
   const { columns, reorderColumns } = useColumns(boardId);
   const { tasks, moveTaskToColumn } = useTasks();
 
-  // 2. סינון ראשוני של משימות לפי הלוח
+  // 2. סינון משימות
   const boardTasks = tasks.filter((t) => t.boardId === boardId);
-
-  // 3. סינון לפי חיפוש, שמורות והמשימות שלי
   const { filteredTasks } = useTaskFilters(boardTasks, userId, {
     searchQuery,
     showOnlySaved,
     showOnlyMine,
   });
 
-  // 4. מצבים לפתיחת דיאלוגים
+  // 3. מצבים לפתיחת דיאלוגים
   const [isCreateColumnOpen, setIsCreateColumnOpen] = useState(false);
   const [editingColumn, setEditingColumn] = useState<Column | null>(null);
 
-  // 5. גרירה
+  // 4. גרירה
   const { handleDragEnd } = useKanbanDrag({
     columns,
     tasks: filteredTasks,
@@ -62,8 +61,8 @@ export const KanbanBoardContainer: React.FC<KanbanBoardContainerProps> = ({
     <DragDropProvider onDragEnd={handleDragEnd}>
       <BoardHeader
         onAddColumn={() => setIsCreateColumnOpen(true)}
-        isPublic={isPublic} // 👈 עובר ישירות ל-Header
-        onTogglePrivacy={onTogglePrivacy} // 👈 עובר ישירות ל-Header
+        isPublic={isPublic} // 👈 עובר הלאה
+        onTogglePrivacy={onTogglePrivacy} // 👈 עובר הלאה
         members={[]}
       />
 

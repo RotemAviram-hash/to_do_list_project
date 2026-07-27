@@ -7,4 +7,4 @@ export { UserProvider } from "./providers/UserProvider";
 export * from "./providers/UserProvider"; // אם יש שם Custom Hook כמו useAuth שמיוצא משם
 
 // ייצוא הטיפוסים
-export * from "./types/User";
+export * from "./models/User";

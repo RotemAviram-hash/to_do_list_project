@@ -19,7 +19,7 @@ import { joiResolver } from "@hookform/resolvers/joi";
 import Joi from "joi";
 import type { Column } from "../../Column";
 import type { Task } from "../models/Task";
-import type { User } from "../../../user";
+import type { User } from "../../user";
 
 export interface UserOption {
   id: string;

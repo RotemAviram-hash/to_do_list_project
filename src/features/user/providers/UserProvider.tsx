@@ -14,9 +14,9 @@ import {
   signOut,
   onAuthStateChanged,
 } from "firebase/auth";
-import type { User } from "../types/User";
+import type { User } from "../models/User";
 import { addUser, getUserById } from "../services/usersDataServiceFireBase";
-import app from "../../config/firebase";
+import app from "../../../config/firebase";
 
 const UserContext = createContext<
   | {

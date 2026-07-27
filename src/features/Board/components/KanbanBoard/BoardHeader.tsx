@@ -5,7 +5,7 @@ import { BoardMembersAccess, type BoardMember } from "./BoardMembersAccess";
 import { BoardPrivacyToggle } from "./BoardPrivacyToggle";
 
 interface BoardHeaderProps {
-  onAddColumn?: () => void;
+  onAddColumn: () => void;
   isPublic: boolean;
   onTogglePrivacy: () => void;
   members: BoardMember[];
@@ -38,7 +38,7 @@ export const BoardHeader: React.FC<BoardHeaderProps> = ({
       {/* כפתור הוספת עמודה */}
       <Button
         size="small"
-        onClick={onAddColumn || (() => alert("הוספת עמודה חדשה"))}
+        onClick={onAddColumn}
         startIcon={<AddRoundedIcon sx={{ fontSize: 18 }} />}
         sx={{
           borderRadius: "8px",

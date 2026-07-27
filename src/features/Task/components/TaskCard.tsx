@@ -27,7 +27,7 @@ import {
   type ThemeContextType,
 } from "../../../providers/ProjectThemeProvider";
 import ROUTES from "../../../router/routes";
-import { useUser } from "../../../user";
+import { useUser } from "../../user";
 import type { Column } from "../../Column";
 import type { Task } from "../models/Task";
 import { EditTaskDialog } from "../dialogs/EditTaskDialog";
@@ -308,7 +308,6 @@ function TaskCard({
           onClose={() => setIsOpen(false)}
           task={task}
           columns={columns}
-          handleUpdate={updateTask}
         />
       )}
     </Card>

@@ -7,8 +7,8 @@ import {
   doc,
 } from "firebase/firestore";
 
-import type { User } from "../types/User";
-import app from "../../config/firebase";
+import type { User } from "../models/User";
+import app from "../../../config/firebase";
 
 const db = getFirestore(app);
 const usersCollection = collection(db, "users");

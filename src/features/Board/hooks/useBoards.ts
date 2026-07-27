@@ -9,6 +9,7 @@ export function useBoards(userId?: string) {
   const [error, setError] = useState<string | null>(null);
 
   // 1. האזנה לשינויים בזמן אמת
+  // 1. האזנה לשינויים בזמן אמת
   useEffect(() => {
     setLoading(true);
     setError(null);
@@ -17,10 +18,19 @@ export function useBoards(userId?: string) {
       (updatedBoards) => {
         setBoards(updatedBoards);
 
-        // אם עדיין לא נבחר לוח פעיל ויש לוחות, נבחר את הראשון כברירת מחדל
-        if (updatedBoards.length > 0 && !activeBoardId) {
-          setActiveBoardId(updatedBoards[0].id);
-        }
+        // 💡 התיקון: שימוש ב-Functional Updater למניעת Stale Closure
+        setActiveBoardId((currentActiveId) => {
+          // אם כבר יש לוח פעיל שנבחר והוא עדיין קיים ברשימה - נשריין אותו!
+          const stillExists = updatedBoards.some(
+            (b) => b.id === currentActiveId,
+          );
+          if (stillExists) {
+            return currentActiveId;
+          }
+
+          // אם אין לוח נבחר (בטעינה ראשונה) או שהלוח הנוכחי נמחק - נבחר את הראשון
+          return updatedBoards.length > 0 ? updatedBoards[0].id : null;
+        });
 
         setLoading(false);
       },
@@ -107,6 +117,36 @@ export function useBoards(userId?: string) {
     [activeBoardId],
   );
 
+  // 5. פעולת הפיכת לוח לציבורי / פרטי
+  const toggleBoardPrivacy = useCallback(
+    async (boardId: string, currentIsPublic: boolean) => {
+      const newPublicState = !currentIsPublic;
+
+      // 1. Optimistic Update - עדכון ה-UI באופן מיידי
+      setBoards((prevBoards) =>
+        prevBoards.map((board) =>
+          board.id === boardId ? { ...board, isPublic: newPublicState } : board,
+        ),
+      );
+
+      // 2. עדכון ב-Firebase ברקע
+      try {
+        await boardService.updateBoardPrivacy(boardId, newPublicState);
+      } catch (err) {
+        // 3. Rollback - שחזור למצב המקורי במקרה שגיאה
+        setBoards((prevBoards) =>
+          prevBoards.map((board) =>
+            board.id === boardId
+              ? { ...board, isPublic: currentIsPublic }
+              : board,
+          ),
+        );
+        console.error("Failed to update board privacy:", err);
+      }
+    },
+    [], // 👈 עכשיו המערך הריק חוקי ונקי לחלוטין!
+  );
+
   // אובייקט הלוח הפעיל הנוכחי לשליפה קלה ב-UI
   const activeBoard = boards.find((b) => b.id === activeBoardId) || null;
 
@@ -114,11 +154,13 @@ export function useBoards(userId?: string) {
     boards,
     activeBoardId,
     activeBoard,
+    isPublic: activeBoard?.isPublic ?? false, // 👈 חילוץ ישיר של סטייט הפרטיות של הלוח הפעיל
     setActiveBoardId,
     loading,
     error,
     addBoard,
     updateBoard,
     deleteBoard,
+    toggleBoardPrivacy, // 👈 הפונקציה החדשה לשינוי הפרטיות בלחיצה
   };
 }

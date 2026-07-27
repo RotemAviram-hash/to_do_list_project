@@ -77,3 +77,18 @@ export const removeBoard = async (id: string): Promise<void> => {
 
   return await boardRepo.deleteBoardRepo(id);
 };
+
+/**
+ * 5. עדכון סטטוס פרטיות של לוח (ציבורי / פרטי)
+ */
+export const updateBoardPrivacy = async (
+  id: string,
+  isPublic: boolean,
+): Promise<void> => {
+  if (!id) {
+    throw new Error("חובה לספק ID לעדכון פרטיות הלוח");
+  }
+
+  // עושים שימוש חוזר ב-editBoard כדי לקבל גם ולידציות וגם עדכון אוטומטי של updatedAt
+  return await editBoard(id, { isPublic });
+};

@@ -10,7 +10,7 @@ import AddTaskIcon from "@mui/icons-material/AddTask";
 import type { Column } from "../../Column";
 import type { Task } from "../models/Task";
 import { TaskForm } from "./TaskForm";
-import type { User } from "../../../user";
+import type { User } from "../../user";
 import { useTasks } from "../hooks/useTasks";
 
 interface CreateTaskDialogProps {

@@ -7,27 +7,30 @@ import { KanbanBoardContainer } from "../features/Board/components/KanbanBoard/K
 
 // Custom Hooks
 import { useBoards } from "../features/Board/hooks/useBoards";
-import { useColumns } from "../features/Column/hooks/useColumns"; // 👈 1. מייבאים את הוק העמודות
+import { useColumns } from "../features/Column/hooks/useColumns";
 
 export default function KanbanPreview({ userId }: { userId?: string }) {
-  // 1. ניהול הסטייטים של סינון המשימות
+  // 1. סטייטים לסינון
   const [searchQuery, setSearchQuery] = useState("");
   const [showOnlySaved, setShowOnlySaved] = useState(false);
   const [showOnlyMine, setShowOnlyMine] = useState(false);
 
-  // 2. שליפת הלוחות והלוח הפעיל
+  // 2. קריאה יחידה לשרת עבור כל הלוחות
   const {
     boards,
     activeBoardId,
     setActiveBoardId,
+    toggleBoardPrivacy, // 👈 הפונקציה מההוק
     loading: loadingBoards,
     error: errorBoards,
   } = useBoards(userId);
 
-  // 3. שליפת העמודות עבור ספירת העמודות בטאבים
-  const { columns } = useColumns(); // 👈 2. שולפים את כל העמודות
+  // 3. שליפת עמודות לספירה בטאבים
+  const { columns } = useColumns();
 
-  // 4. מצב טעינה
+  // שליפת הלוח הפעיל הנוכחי ומצב הפרטיות שלו
+  const activeBoard = boards.find((b) => b.id === activeBoardId);
+
   if (loadingBoards) {
     return (
       <Box
@@ -43,7 +46,6 @@ export default function KanbanPreview({ userId }: { userId?: string }) {
     );
   }
 
-  // 5. מצב שגיאה
   if (errorBoards) {
     return (
       <Box sx={{ p: 4 }}>
@@ -61,7 +63,7 @@ export default function KanbanPreview({ userId }: { userId?: string }) {
         onTabChange={(_, newBoardId) => setActiveBoardId(newBoardId)}
         getColumnCount={(bId) =>
           columns.filter((c) => c.boardId === bId).length
-        } // 👈 3. מחשבים כמה עמודות יש לכל לוח!
+        }
         currentUserId={userId}
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
@@ -75,10 +77,11 @@ export default function KanbanPreview({ userId }: { userId?: string }) {
       {activeBoardId ? (
         <KanbanBoardContainer
           boardId={activeBoardId}
+          isPublic={activeBoard?.isPublic ?? false}
+          onTogglePrivacy={() =>
+            toggleBoardPrivacy(activeBoardId, activeBoard?.isPublic ?? false)
+          }
           userId={userId}
-          searchQuery={searchQuery}
-          showOnlySaved={showOnlySaved}
-          showOnlyMine={showOnlyMine}
         />
       ) : (
         <Box

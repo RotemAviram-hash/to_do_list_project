@@ -5,7 +5,7 @@ import { ProjectThemeProvider } from "./providers/ProjectThemeProvider";
 import { SnackProvider } from "./providers/SnackProvider";
 
 import CssBaseline from "@mui/material/CssBaseline";
-import { UserProvider } from "./user/providers/UserProvider";
+import { UserProvider } from "./features/user/providers/UserProvider";
 
 function App() {
   return (

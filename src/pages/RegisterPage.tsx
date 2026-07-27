@@ -5,7 +5,7 @@ import Joi from "joi";
 
 import { Navigate } from "react-router-dom";
 import ROUTES from "../router/routes";
-import { useUser } from "../user/providers/UserProvider";
+import { useUser } from "../features/user/providers/UserProvider";
 
 // 1. הגדרת סכימת הולידציה (נשאר בדיוק אותו דבר)
 const userSchema = Joi.object({
