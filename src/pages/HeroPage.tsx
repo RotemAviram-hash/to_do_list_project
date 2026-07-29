@@ -1,272 +1,450 @@
-import { Box, Container, Typography, Button } from "@mui/material";
-import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
+import React from "react";
+import {
+  Box,
+  Container,
+  Typography,
+  Button,
+  Paper,
+  Grid,
+  alpha,
+  useTheme,
+} from "@mui/material";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import CalendarMonthRoundedIcon from "@mui/icons-material/CalendarMonthRounded";
+import LayersRoundedIcon from "@mui/icons-material/LayersRounded";
+import WorkspacePremiumRoundedIcon from "@mui/icons-material/WorkspacePremiumRounded";
+import PlayArrowRoundedIcon from "@mui/icons-material/PlayArrowRounded";
+import CheckRoundedIcon from "@mui/icons-material/CheckRounded";
 
-function HeroPage() {
+import { Link as RouterLink } from "react-router-dom";
+import ROUTES from "../router/routes";
+
+interface TaskMasterHeroProps {
+  onGetStarted?: () => void;
+  onLogin?: () => void;
+}
+
+const TaskMasterHero: React.FC<TaskMasterHeroProps> = ({
+  onGetStarted,
+  onLogin,
+}) => {
+  const theme = useTheme();
+  const isDark = theme.palette.mode === "dark";
+
   return (
     <Box
+      dir="rtl"
       sx={{
-        minHeight: "90vh",
-        display: "flex",
-        alignItems: "center",
         bgcolor: "background.default",
+        color: "text.primary",
+        minHeight: "100vh",
+        py: { xs: 6, sm: 8, md: 12 },
         position: "relative",
         overflow: "hidden",
-        py: { xs: 8, md: 0 },
-        direction: "rtl", // התאמה מלאה לעברית
       }}
     >
-      <Container maxWidth="lg">
+      {/* רקע דקורטיבי רך */}
+      <Box
+        sx={{
+          position: "absolute",
+          top: "-10%",
+          left: "50%",
+          transform: "translateX(-50%)",
+          width: { xs: "100%", md: "900px" },
+          height: "500px",
+          background: isDark
+            ? "radial-gradient(circle, rgba(99,102,241,0.12) 0%, rgba(0,0,0,0) 70%)"
+            : "radial-gradient(circle, rgba(79,70,229,0.08) 0%, rgba(255,255,255,0) 70%)",
+          filter: "blur(90px)",
+          pointerEvents: "none",
+          zIndex: 0,
+        }}
+      />
+
+      <Container
+        maxWidth="lg"
+        sx={{ position: "relative", zIndex: 1, px: { xs: 2.5, sm: 3, md: 4 } }}
+      >
+        {/* חלק עליון: כותרת ראשית והנעה לפעולה */}
         <Box
           sx={{
-            display: "grid",
-            gridTemplateColumns: { xs: "1fr", md: "1.2fr 1fr" },
-            gap: { xs: 6, md: 8 },
-            alignItems: "center",
+            textAlign: "center",
+            maxWidth: "780px",
+            mx: "auto",
+            mb: { xs: 8, md: 10 },
           }}
         >
-          {/* צד ימין (בעברית): התוכן וההנעה לפעולה */}
           <Box
             sx={{
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "flex-start",
-              textAlign: "right",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 1,
+              px: 2,
+              py: 0.8,
+              borderRadius: "50px",
+              bgcolor: isDark ? alpha("#ffffff", 0.04) : alpha("#000000", 0.03),
+              border: "1px solid",
+              borderColor: "divider",
+              mb: 3,
             }}
           >
-            {/* תגית סטטוס טכנולוגית קטנה בעברית */}
-            <Box
-              sx={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 1.5,
-                px: 1.5,
-                py: 0.5,
-                borderRadius: "6px",
-                bgcolor: "action.hover",
-                border: "1px solid",
-                borderColor: "divider",
-                mb: 3,
-              }}
-            >
-              <Box
-                sx={{
-                  width: 6,
-                  height: 6,
-                  borderRadius: "50%",
-                  bgcolor: "primary.main",
-                }}
-              />
-              <Typography
-                sx={{
-                  fontSize: "0.75rem",
-                  fontWeight: "700",
-                  color: "text.secondary",
-                  letterSpacing: "0.5px",
-                }}
-              >
-                גרסה 1.0.0 // מוכן לעבודה
-              </Typography>
-            </Box>
-
-            {/* כותרת ארכיטקטונית נקייה וסוחפת */}
+            <WorkspacePremiumRoundedIcon
+              sx={{ fontSize: "18px", color: "primary.main" }}
+            />
             <Typography
-              variant="h1"
               sx={{
-                fontWeight: "800",
-                fontSize: { xs: "2.5rem", sm: "3.5rem", md: "4rem" },
-                lineHeight: 1.1,
-                color: "text.primary",
-                letterSpacing: "-1px",
-                mb: 2,
-              }}
-            >
-              תעשו סדר בבלגן. <br />
-              <Box component="span" sx={{ color: "primary.main" }}>
-                תבנו את לוח העבודה שלכם.
-              </Box>
-            </Typography>
-
-            {/* תיאור ממוקד מטרה */}
-            <Typography
-              variant="body1"
-              sx={{
+                fontSize: "0.8rem",
+                fontWeight: 700,
                 color: "text.secondary",
-                maxWidth: "480px",
-                fontSize: "1.1rem",
-                lineHeight: 1.6,
-                mb: 4,
               }}
             >
-              מערכת חכמה לניהול משימות, פרויקטים ולוחות זמנים בעיצוב הנדסי נקי.
-              הדרך המהירה והיעילה ביותר לקחת שליטה על המשימות שלכם, לעקוב אחר
-              ההתקדמות ולבנות לוחות עבודה מנצחים.
+              הדור הבא של ארגון המשימות והפרויקטים
             </Typography>
-
-            {/* כפתור ההרשמה והתחלת הלוח החדש */}
-            <Button
-              variant="contained"
-              size="large"
-              endIcon={<ArrowForwardIcon />} // החץ פונה קדימה לפי כיוון ה-RTL
-              sx={{
-                px: 4,
-                py: 1.8,
-                borderRadius: "8px",
-                fontSize: "1.05rem",
-                fontWeight: "750",
-                textTransform: "none",
-                bgcolor: "text.primary",
-                color: "background.paper",
-                transition: "all 0.2s ease-in-out",
-                "&:hover": {
-                  bgcolor: "text.secondary",
-                  transform: "scale(1.02)", // אפקט גדילה קטן ומזמין
-                },
-              }}
-            >
-              בואו נתחיל בקסם ✨
-            </Button>
           </Box>
 
-          {/* צד שמאל (בעברית): ממשק הלוח המדומה המפשט */}
+          <Typography
+            variant="h1"
+            sx={{
+              fontWeight: 900,
+              fontSize: { xs: "2.5rem", sm: "3.75rem", md: "4.5rem" },
+              lineHeight: 1.1,
+              letterSpacing: "-2px",
+              mb: 3,
+            }}
+          >
+            הופכים משימות מורכבות ל{" "}
+            <Box
+              component="span"
+              sx={{
+                background: "linear-gradient(135deg, #6366f1 0%, #a855f7 100%)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+              }}
+            >
+              הצלחה חלקה.
+            </Box>
+          </Typography>
+
+          <Typography
+            variant="body1"
+            sx={{
+              color: "text.secondary",
+              fontSize: { xs: "1.05rem", md: "1.2rem" },
+              lineHeight: 1.7,
+              mb: 4,
+              maxWidth: "640px",
+              mx: "auto",
+            }}
+          >
+            מערכת ניהול משימות אינטואיטיבית שתוכננה במיוחד כדי לתת לכם סדר בראש,
+            פוקוס מוחלט ויכולת לבצע יותר בפחות מאמץ.
+          </Typography>
+
           <Box
             sx={{
-              position: "relative",
-              width: "100%",
               display: "flex",
+              flexDirection: { xs: "column", sm: "row" },
+              gap: 2,
               justifyContent: "center",
               alignItems: "center",
             }}
           >
-            {/* אפקט זוהר עדין מאחורי הממשק */}
-            <Box
+            <Button
+              component={RouterLink}
+              to={ROUTES.WORKSPACE}
+              variant="contained"
+              size="large"
+              endIcon={<ArrowBackIcon sx={{ mr: 1, ml: -0.5 }} />}
               sx={{
-                position: "absolute",
-                width: "80%",
-                height: "80%",
-                borderRadius: "50%",
-                bgcolor: "primary.light",
-                filter: "blur(100px)",
-                opacity: 0.08,
-                zIndex: 1,
-              }}
-            />
-
-            {/* קופסת הממשק המדומה - נקייה, ברורה ובלי תהליכים מבלבלים */}
-            <Box
-              sx={{
-                position: "relative",
-                zIndex: 2,
-                width: "100%",
-                maxWidth: 440,
-                bgcolor: "background.paper",
-                border: "1px solid",
-                borderColor: "divider",
-                borderRadius: "12px",
-                boxShadow: "0px 20px 40px rgba(0,0,0,0.04)",
-                p: 3,
-                display: "flex",
-                flexDirection: "column",
-                gap: 2,
+                px: 4.5,
+                py: 1.7,
+                borderRadius: "14px",
+                fontSize: "1.05rem",
+                fontWeight: 700,
+                textTransform: "none",
+                bgcolor: "#6366f1",
+                color: "#ffffff",
+                width: { xs: "100%", sm: "auto" },
+                boxShadow: "0 10px 25px rgba(99,102,241,0.35)",
+                "&:hover": {
+                  bgcolor: "#4f46e5",
+                },
               }}
             >
-              {/* כותרת הלוח */}
+              בוא נתחיל לעבוד
+            </Button>
+          </Box>
+        </Box>
+
+        {/* מבנה Bento Grid חדשני הכולל את לוח השנה */}
+        <Grid container spacing={3}>
+          {/* כרטיס גדול 1: לוחות עבודה חזותיים */}
+          <Grid size={{ xs: 12, md: 8 }}>
+            <Paper
+              elevation={0}
+              sx={{
+                p: { xs: 3.5, sm: 5 },
+                height: "100%",
+                borderRadius: "28px",
+                bgcolor: isDark
+                  ? alpha("#ffffff", 0.02)
+                  : alpha("#000000", 0.02),
+                border: "1px solid",
+                borderColor: "divider",
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "space-between",
+                position: "relative",
+                overflow: "hidden",
+              }}
+            >
+              <Box sx={{ maxWidth: "420px", mb: 4 }}>
+                <Box
+                  sx={{
+                    display: "inline-flex",
+                    p: 1.5,
+                    borderRadius: "12px",
+                    bgcolor: alpha("#6366f1", 0.1),
+                    color: "#6366f1",
+                    mb: 2,
+                  }}
+                >
+                  <LayersRoundedIcon />
+                </Box>
+                <Typography variant="h5" fontWeight="800" sx={{ mb: 1 }}>
+                  לוחות עבודה חכמים (Kanban)
+                </Typography>
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  sx={{ lineHeight: 1.6 }}
+                >
+                  שלוט בזרימת העבודה שלך בקלות. גרור משימות בין עמודות, סנן לפי
+                  תיוגים ועקוב אחר ההתקדמות בזמן אמת בלי לאבד את הפוקוס.
+                </Typography>
+              </Box>
+
+              {/* מוקאפ פנימי קטן שממחיש לוח */}
               <Box
                 sx={{
                   display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  borderBottom: "1px solid",
-                  borderColor: "divider",
-                  pb: 1.5,
+                  gap: 2,
+                  overflowX: "auto",
+                  pb: 1,
                 }}
               >
-                <Typography sx={{ fontWeight: "700", fontSize: "0.95rem" }}>
-                  📋 לוח משימות ראשון
-                </Typography>
                 <Box
                   sx={{
-                    px: 1,
-                    py: 0.2,
-                    bgcolor: "action.hover",
-                    borderRadius: "4px",
-                    fontSize: "0.75rem",
-                    color: "text.secondary",
-                    fontWeight: "600",
+                    minWidth: "180px",
+                    p: 2,
+                    borderRadius: "14px",
+                    bgcolor: "background.paper",
+                    border: "1px solid",
+                    borderColor: "divider",
                   }}
                 >
-                  ראשי
+                  <Typography
+                    sx={{
+                      fontSize: "0.75rem",
+                      fontWeight: 700,
+                      color: "text.secondary",
+                      mb: 1.5,
+                    }}
+                  >
+                    📌 לביצוע
+                  </Typography>
+                  <Box
+                    sx={{
+                      p: 1.5,
+                      borderRadius: "8px",
+                      bgcolor: isDark
+                        ? alpha("#ffffff", 0.03)
+                        : alpha("#000000", 0.03),
+                      mb: 1,
+                      fontSize: "0.8rem",
+                      fontWeight: 600,
+                    }}
+                  >
+                    עיצוב ממשק משתמש
+                  </Box>
+                  <Box
+                    sx={{
+                      p: 1.5,
+                      borderRadius: "8px",
+                      bgcolor: isDark
+                        ? alpha("#ffffff", 0.03)
+                        : alpha("#000000", 0.03),
+                      fontSize: "0.8rem",
+                      fontWeight: 600,
+                    }}
+                  >
+                    כתיבת מסמך דרישות
+                  </Box>
+                </Box>
+
+                <Box
+                  sx={{
+                    minWidth: "180px",
+                    p: 2,
+                    borderRadius: "14px",
+                    bgcolor: "background.paper",
+                    border: "1px solid",
+                    borderColor: "divider",
+                  }}
+                >
+                  <Typography
+                    sx={{
+                      fontSize: "0.75rem",
+                      fontWeight: 700,
+                      color: "#6366f1",
+                      mb: 1.5,
+                    }}
+                  >
+                    ⚡ בתהליך עבודה
+                  </Typography>
+                  <Box
+                    sx={{
+                      p: 1.5,
+                      borderRadius: "8px",
+                      bgcolor: alpha("#6366f1", 0.08),
+                      color: "#6366f1",
+                      fontSize: "0.8rem",
+                      fontWeight: 700,
+                    }}
+                  >
+                    פיתוח רכיבי צד-לקוח
+                  </Box>
                 </Box>
               </Box>
+            </Paper>
+          </Grid>
 
-              {/* משימה 1: מבוצעת */}
-              <Box
-                sx={{
-                  p: 1.8,
-                  bgcolor: "action.hover",
-                  borderRadius: "8px",
-                  borderRight: "4px solid",
-                  borderColor: "success.main",
-                }}
-              >
-                <Typography
+          {/* כרטיס צדדי 2: לוח שנה חכם (Calendar Feature) */}
+          <Grid size={{ xs: 12, md: 4 }}>
+            <Paper
+              elevation={0}
+              sx={{
+                p: { xs: 3.5, sm: 5 },
+                height: "100%",
+                borderRadius: "28px",
+                bgcolor: isDark
+                  ? alpha("#ffffff", 0.02)
+                  : alpha("#000000", 0.02),
+                border: "1px solid",
+                borderColor: "divider",
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "space-between",
+              }}
+            >
+              <Box>
+                <Box
                   sx={{
-                    fontSize: "0.85rem",
-                    fontWeight: "600",
-                    textDecoration: "line-through",
-                    color: "text.disabled",
+                    display: "inline-flex",
+                    p: 1.5,
+                    borderRadius: "12px",
+                    bgcolor: alpha("#a855f7", 0.1),
+                    color: "#a855f7",
+                    mb: 2,
                   }}
                 >
-                  לבחור קנבס עיצוב סופי לפרויקט
+                  <CalendarMonthRoundedIcon />
+                </Box>
+                <Typography variant="h5" fontWeight="800" sx={{ mb: 1 }}>
+                  לוח שנה וניהול תאריכים
+                </Typography>
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  sx={{ lineHeight: 1.6 }}
+                >
+                  תצוגה חודשית ושבועית המרכזת את כל המשימות והדדליינים שלך בצורה
+                  ויזואלית נוחה המונעת פספוסים.
                 </Typography>
               </Box>
 
-              {/* משימה 2: בעבודה */}
+              {/* ווידג'ט לוח שנה מדומה */}
               <Box
                 sx={{
-                  p: 1.8,
-                  bgcolor: "action.hover",
-                  borderRadius: "8px",
-                  borderRight: "4px solid",
-                  borderColor: "primary.main",
+                  mt: 4,
+                  p: 2,
+                  borderRadius: "16px",
+                  bgcolor: "background.paper",
+                  border: "1px solid",
+                  borderColor: "divider",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 1.5,
                 }}
               >
-                <Typography
+                <Box
                   sx={{
-                    fontSize: "0.85rem",
-                    fontWeight: "700",
-                    color: "text.primary",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
                   }}
                 >
-                  🚀 ללחוץ על הכפתור וליצור לוח חדש משלי
-                </Typography>
-              </Box>
+                  <Typography sx={{ fontSize: "0.85rem", fontWeight: 700 }}>
+                    📅 יולי 2026
+                  </Typography>
+                  <Typography
+                    sx={{
+                      fontSize: "0.75rem",
+                      fontWeight: 600,
+                      color: "#a855f7",
+                    }}
+                  >
+                    3 משימות היום
+                  </Typography>
+                </Box>
 
-              {/* משימה 3: ממתין */}
-              <Box
-                sx={{
-                  p: 1.8,
-                  bgcolor: "action.hover",
-                  borderRadius: "8px",
-                  borderRight: "4px solid",
-                  borderColor: "warning.main",
-                }}
-              >
-                <Typography
+                {/* דוגמה למשימה משובצת בלוח השנה */}
+                <Box
                   sx={{
-                    fontSize: "0.85rem",
-                    fontWeight: "600",
-                    color: "text.secondary",
+                    p: 1.5,
+                    borderRadius: "10px",
+                    bgcolor: alpha("#a855f7", 0.08),
+                    border: "1px solid",
+                    borderColor: alpha("#a855f7", 0.2),
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 1.5,
                   }}
                 >
-                  להזמין את שאר חברי הצוות ללוח
-                </Typography>
+                  <Box
+                    sx={{
+                      width: 28,
+                      height: 28,
+                      borderRadius: "8px",
+                      bgcolor: "#a855f7",
+                      color: "#ffffff",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontSize: "0.75rem",
+                      fontWeight: 700,
+                    }}
+                  >
+                    12
+                  </Box>
+                  <Box>
+                    <Typography sx={{ fontSize: "0.8rem", fontWeight: 700 }}>
+                      הגשת פרויקט גמר
+                    </Typography>
+                    <Typography
+                      sx={{ fontSize: "0.7rem", color: "text.secondary" }}
+                    >
+                      שעה 14:00 • דדליין ראשי
+                    </Typography>
+                  </Box>
+                </Box>
               </Box>
-            </Box>
-          </Box>
-        </Box>
+            </Paper>
+          </Grid>
+        </Grid>
       </Container>
     </Box>
   );
-}
+};
 
-export default HeroPage;
+export default TaskMasterHero;

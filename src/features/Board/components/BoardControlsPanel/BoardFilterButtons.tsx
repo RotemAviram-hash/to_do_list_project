@@ -1,45 +1,20 @@
 import React, { useCallback } from "react";
-import { Box, Button, alpha, type Theme } from "@mui/material";
-import BookmarkOutlinedIcon from "@mui/icons-material/BookmarkOutlined";
+import { Box, Button, alpha } from "@mui/material";
+import BookmarkIcon from "@mui/icons-material/Bookmark";
+import BookmarkBorderIcon from "@mui/icons-material/BookmarkBorder";
+import PersonIcon from "@mui/icons-material/Person";
 import PersonOutlineIcon from "@mui/icons-material/PersonOutlined";
 
-// 👈 ייבוא הטיפוס הישיר מההוק שלנו
 import type { FilterOptions } from "../../../Task/hooks/useTaskFilters";
 
 interface BoardFilterButtonsProps {
-  // 🌟 אפשרות א' (מומלצת): העברת אובייקט הפילטרים ופונקציית עדכון ה-State מהרכיב האב
   filters?: FilterOptions;
   setFilters?: React.Dispatch<React.SetStateAction<FilterOptions>>;
-
-  // 🔄 אפשרות ב' (תמיכה לאחור): Props פרטניים
   showOnlySaved?: boolean;
   onToggleSaved?: (val: boolean) => void;
   showOnlyMine?: boolean;
   onToggleMine?: (val: boolean) => void;
 }
-
-// ⚡ אופטימיזציה: פונקציית העיצוב מחוץ לרכיב למניעת חישוב מחדש בכל רנדור
-const getFilterButtonSx = (isActive: boolean) => (theme: Theme) => ({
-  borderRadius: "10px",
-  fontSize: "0.82rem",
-  fontWeight: isActive ? 600 : 500,
-  textTransform: "none",
-  whiteSpace: "nowrap",
-  px: 1.5,
-  py: 0.6,
-  color: isActive ? "primary.main" : "text.secondary",
-  bgcolor: isActive ? alpha(theme.palette.primary.main, 0.12) : "transparent",
-  border: "1px solid",
-  borderColor: isActive
-    ? alpha(theme.palette.primary.main, 0.35)
-    : "transparent",
-  transition: "all 0.2s ease-in-out",
-  "&:hover": {
-    bgcolor: isActive
-      ? alpha(theme.palette.primary.main, 0.2)
-      : theme.palette.action.hover,
-  },
-});
 
 export const BoardFilterButtons: React.FC<BoardFilterButtonsProps> = React.memo(
   ({
@@ -50,11 +25,9 @@ export const BoardFilterButtons: React.FC<BoardFilterButtonsProps> = React.memo(
     showOnlyMine: propShowMine,
     onToggleMine,
   }) => {
-    // 🎯 חילוץ הערכים הפעילים (בין אם הועברו בתוך filters או כ-Props בודדים)
     const isSavedActive = filters?.showOnlySaved ?? propShowSaved ?? false;
     const isMineActive = filters?.showOnlyMine ?? propShowMine ?? false;
 
-    // ⚡ הינדלר בלחיצה על "השמורות שלי"
     const handleToggleSaved = useCallback(() => {
       if (setFilters) {
         setFilters((prev) => ({
@@ -66,7 +39,6 @@ export const BoardFilterButtons: React.FC<BoardFilterButtonsProps> = React.memo(
       }
     }, [setFilters, onToggleSaved, isSavedActive]);
 
-    // ⚡ הינדלר בלחיצה על "המשימות שלי"
     const handleToggleMine = useCallback(() => {
       if (setFilters) {
         setFilters((prev) => ({
@@ -78,13 +50,46 @@ export const BoardFilterButtons: React.FC<BoardFilterButtonsProps> = React.memo(
       }
     }, [setFilters, onToggleMine, isMineActive]);
 
+    const getButtonSx = (isActive: boolean) => (theme: any) => ({
+      borderRadius: "10px",
+      fontSize: "0.82rem",
+      fontWeight: isActive ? 600 : 500,
+      textTransform: "none",
+      whiteSpace: "nowrap",
+      px: 1.8,
+      py: 0.6,
+      color: isActive ? "primary.main" : "text.secondary",
+      bgcolor: isActive
+        ? alpha(theme.palette.primary.main, 0.1)
+        : "transparent",
+      border: "1px solid",
+      borderColor: isActive
+        ? alpha(theme.palette.primary.main, 0.3)
+        : "divider",
+      transition: "all 0.2s ease-in-out",
+      "&:hover": {
+        bgcolor: isActive
+          ? alpha(theme.palette.primary.main, 0.18)
+          : alpha(theme.palette.action.hover, 0.08),
+        borderColor: isActive
+          ? "primary.main"
+          : alpha(theme.palette.text.secondary, 0.3),
+      },
+    });
+
     return (
-      <Box sx={{ display: "flex", gap: 1.5, alignItems: "center" }}>
+      <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
         <Button
           size="small"
           onClick={handleToggleSaved}
-          startIcon={<BookmarkOutlinedIcon sx={{ fontSize: 16 }} />}
-          sx={getFilterButtonSx(isSavedActive)}
+          startIcon={
+            isSavedActive ? (
+              <BookmarkIcon sx={{ fontSize: 16 }} />
+            ) : (
+              <BookmarkBorderIcon sx={{ fontSize: 16 }} />
+            )
+          }
+          sx={getButtonSx(isSavedActive)}
         >
           השמורות שלי
         </Button>
@@ -92,8 +97,14 @@ export const BoardFilterButtons: React.FC<BoardFilterButtonsProps> = React.memo(
         <Button
           size="small"
           onClick={handleToggleMine}
-          startIcon={<PersonOutlineIcon sx={{ fontSize: 16 }} />}
-          sx={getFilterButtonSx(isMineActive)}
+          startIcon={
+            isMineActive ? (
+              <PersonIcon sx={{ fontSize: 16 }} />
+            ) : (
+              <PersonOutlineIcon sx={{ fontSize: 16 }} />
+            )
+          }
+          sx={getButtonSx(isMineActive)}
         >
           המשימות שלי
         </Button>

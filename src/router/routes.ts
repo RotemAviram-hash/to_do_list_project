@@ -6,9 +6,9 @@ const ROUTES = {
   LOGIN: "/login",
   REGISTER: "/register",
 
+  // כתובות מיוחדות למשתמשים
   WORKSPACE: "/Workspace",
   //לא מחוברים בראוטר
-  TASKS: "/allMyTasks",
   CALENDAR: "/calender",
   SETTINGS: "/SETTINGS",
 };

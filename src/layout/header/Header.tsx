@@ -8,9 +8,11 @@ import {
   Box,
   IconButton,
   Tooltip,
+  alpha,
 } from "@mui/material";
 import Brightness4Icon from "@mui/icons-material/Brightness4";
 import Brightness7Icon from "@mui/icons-material/Brightness7";
+import DashboardRoundedIcon from "@mui/icons-material/DashboardRounded";
 
 import NavItem from "../../router/NavItem";
 import ROUTES from "../../router/routes";
@@ -31,7 +33,7 @@ function Header() {
 
   return (
     <AppBar
-      position="static" /* <<< זה השינוי המרכזי: הופך אותו לאלמנט רגיל בשרשרת הדף */
+      position="static"
       elevation={0}
       sx={{
         bgcolor: "background.paper",
@@ -44,31 +46,42 @@ function Header() {
         sx={{
           justifyContent: "space-between",
           px: { xs: 2, md: 4 },
-          minHeight: "64px",
+          minHeight: "72px",
         }}
       >
-        {/* אזור 1: כפתור תצוגה + משתמש / התחברות */}
+        {/* אזור שמאל: כפתור תצוגה + משתמש / התחברות */}
         <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-          {/* כפתור החלפת מצב יום/לילה */}
+          {/* כפתור החלפת מצב יום/לילה מעוגל ועדין */}
           <Tooltip title={isDark ? "מצב יום" : "מצב לילה"}>
             <IconButton
               onClick={toggleMode}
               aria-label="החלף מצב תצוגה"
               sx={{
                 color: "text.secondary",
-                transition: "color 0.2s ease-in-out",
-                "&:hover": { color: "primary.main" },
+                bgcolor: isDark ? alpha("#fff", 0.05) : alpha("#000", 0.03),
+                border: "1px solid",
+                borderColor: "divider",
+                borderRadius: "14px",
+                p: "9px",
+                transition: "all 0.2s ease-in-out",
+                "&:hover": {
+                  color: "primary.main",
+                  bgcolor: isDark
+                    ? alpha("#3b82f6", 0.12)
+                    : alpha("#3b82f6", 0.08),
+                  borderColor: alpha("#3b82f6", 0.3),
+                  transform: "scale(1.05)",
+                },
               }}
             >
               {isDark ? (
-                <Brightness7Icon fontSize="small" />
+                <Brightness7Icon sx={{ fontSize: 18 }} />
               ) : (
-                <Brightness4Icon fontSize="small" />
+                <Brightness4Icon sx={{ fontSize: 18 }} />
               )}
             </IconButton>
           </Tooltip>
 
-          {/* מחובר: אווטר + התנתקות | אורח: התחברות + הרשמה */}
           {user ? (
             <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
               <HeaderAvatar />
@@ -77,15 +90,18 @@ function Header() {
                 onClick={() => logout()}
                 variant="text"
                 sx={{
-                  fontWeight: "600",
+                  fontWeight: 600,
                   color: "text.secondary",
-                  borderRadius: 2,
+                  borderRadius: "12px",
                   px: 2,
+                  py: 0.75,
+                  fontSize: "0.85rem",
+                  textTransform: "none",
                   "&:hover": {
                     color: "error.main",
                     bgcolor: isDark
-                      ? "rgba(244, 67, 54, 0.12)"
-                      : "rgba(211, 47, 47, 0.08)",
+                      ? alpha("#ef4444", 0.12)
+                      : alpha("#ef4444", 0.08),
                   },
                 }}
               >
@@ -98,10 +114,16 @@ function Header() {
                 onClick={() => navigate(ROUTES.LOGIN)}
                 variant="text"
                 sx={{
-                  fontWeight: "600",
+                  fontWeight: 600,
                   color: "text.primary",
-                  borderRadius: 2,
+                  borderRadius: "12px",
                   px: 2,
+                  py: 0.75,
+                  fontSize: "0.85rem",
+                  textTransform: "none",
+                  "&:hover": {
+                    bgcolor: isDark ? alpha("#fff", 0.06) : alpha("#000", 0.04),
+                  },
                 }}
               >
                 התחברות
@@ -112,10 +134,22 @@ function Header() {
                 variant="contained"
                 disableElevation
                 sx={{
-                  fontWeight: "600",
-                  borderRadius: 2,
-                  px: 2,
+                  fontWeight: 600,
+                  borderRadius: "14px",
+                  px: 2.5,
+                  py: 0.75,
+                  fontSize: "0.85rem",
                   textTransform: "none",
+                  boxShadow: isDark
+                    ? "0 4px 12px rgba(59, 130, 246, 0.25)"
+                    : "0 4px 12px rgba(25, 118, 210, 0.2)",
+                  transition: "all 0.2s ease",
+                  "&:hover": {
+                    transform: "translateY(-1px)",
+                    boxShadow: isDark
+                      ? "0 6px 16px rgba(59, 130, 246, 0.35)"
+                      : "0 6px 16px rgba(25, 118, 210, 0.3)",
+                  },
                 }}
               >
                 הרשמה
@@ -124,14 +158,14 @@ function Header() {
           )}
         </Box>
 
-        {/* אזור 2 (מרכז): קישורי ניווט - מופיעים רק כשאורח */}
+        {/* אזור מרכז: קישורי ניווט */}
         {!user && (
           <Box
             component="nav"
             sx={{
               display: { xs: "none", md: "flex" },
               alignItems: "center",
-              gap: 2,
+              gap: 3,
             }}
           >
             <NavItem to={ROUTES.HOME} label="דף הבית" />
@@ -140,27 +174,65 @@ function Header() {
           </Box>
         )}
 
-        {/* אזור 3: לוגו */}
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+        {/* אזור ימין: לוגו עדין וחמוד בהשראת הלוח */}
+        <Box
+          onClick={() => navigate(ROUTES.HOME)}
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 1.25,
+            cursor: "pointer",
+            userSelect: "none",
+            p: "6px 14px",
+            borderRadius: "16px",
+            bgcolor: isDark ? alpha("#3b82f6", 0.08) : alpha("#3b82f6", 0.05),
+            border: "1px solid",
+            borderColor: isDark
+              ? alpha("#3b82f6", 0.2)
+              : alpha("#3b82f6", 0.15),
+            transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
+            "&:hover": {
+              bgcolor: isDark ? alpha("#3b82f6", 0.15) : alpha("#3b82f6", 0.1),
+              transform: "translateY(-1px)",
+              "& .logo-icon-box": {
+                transform: "rotate(6deg) scale(1.05)",
+              },
+            },
+          }}
+        >
           <Typography
             variant="h6"
             component="div"
-            onClick={() => navigate(ROUTES.HOME)}
             sx={{
-              fontWeight: "800",
-              letterSpacing: "0.5px",
-              fontSize: "1.25rem",
-              background: isDark
-                ? "linear-gradient(45deg, #90caf9 30%, #f48fb1 90%)"
-                : "linear-gradient(45deg, #1976d2 30%, #9c27b0 90%)",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-              cursor: "pointer",
-              userSelect: "none",
+              fontWeight: 700,
+              letterSpacing: "-0.2px",
+              fontSize: "1.15rem",
+              color: "text.primary",
             }}
           >
-            TaskFlow
+            Task
+            <Box component="span" sx={{ color: "primary.main" }}>
+              Flow
+            </Box>
           </Typography>
+
+          <Box
+            className="logo-icon-box"
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              width: 30,
+              height: 30,
+              borderRadius: "10px",
+              bgcolor: "primary.main",
+              color: "#ffffff",
+              boxShadow: "0 2px 8px rgba(59, 130, 246, 0.3)",
+              transition: "transform 0.2s ease",
+            }}
+          >
+            <DashboardRoundedIcon sx={{ fontSize: 17 }} />
+          </Box>
         </Box>
       </Toolbar>
     </AppBar>

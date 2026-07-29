@@ -1,5 +1,5 @@
 import React from "react";
-import { Box, Tabs, Tab, IconButton, Tooltip, useTheme } from "@mui/material";
+import { Box, Tabs, Tab, IconButton, Tooltip, alpha } from "@mui/material";
 import AddRoundedIcon from "@mui/icons-material/AddRounded";
 import type { Board } from "../../models/Board";
 
@@ -15,22 +15,20 @@ interface BoardTabItemProps {
   board: Board;
   isActive: boolean;
   count: number;
-  isDarkMode: boolean;
-  value: string; // 👈 חובה עבור MUI Tabs
+  value: string;
 }
 
-// ⚡ רכיב ממומק לטאב בודד
 const BoardTabItem = React.memo<BoardTabItemProps>(
-  ({ board, isActive, count, isDarkMode, value, ...otherProps }) => {
+  ({ board, isActive, count, value, ...otherProps }) => {
     return (
       <Tab
         value={value}
-        {...otherProps} // 👈 מעביר ל-Tab את האירועים והמאפיינים הפנימיים ש-MUI Tabs מזריק
+        {...otherProps}
         disableRipple
         disableFocusRipple
         sx={{
           minHeight: "36px",
-          py: 0.5,
+          py: 0.6,
           px: 2,
           borderRadius: "8px",
           fontSize: "0.85rem",
@@ -38,38 +36,31 @@ const BoardTabItem = React.memo<BoardTabItemProps>(
           textTransform: "none",
           color: isActive ? "text.primary" : "text.secondary",
           bgcolor: isActive ? "background.paper" : "transparent",
-          boxShadow: isActive
-            ? isDarkMode
-              ? "0 2px 8px rgba(0,0,0,0.4)"
-              : "0 2px 6px rgba(0,0,0,0.06)"
-            : "none",
-          transition: "all 0.2s ease",
-          "&:hover": { color: "text.primary" },
+          boxShadow: isActive ? (theme) => theme.shadows[1] : "none",
+          transition: "all 0.2s ease-in-out",
+          "&:hover": {
+            color: "text.primary",
+            bgcolor: isActive
+              ? "background.paper"
+              : (theme) => alpha(theme.palette.action.active, 0.04),
+          },
         }}
         label={
-          <Box
-            sx={{
-              display: "flex",
-              flexDirection: "row",
-              alignItems: "center",
-              gap: 1,
-            }}
-          >
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
             <span>{board.title}</span>
             <Box
               component="span"
               sx={{
-                px: 0.8,
-                py: 0.1,
-                borderRadius: "6px",
+                px: 0.9,
+                py: 0.2,
+                borderRadius: "12px",
                 fontSize: "0.72rem",
-                fontWeight: 600,
+                fontWeight: 700,
                 bgcolor: isActive
-                  ? isDarkMode
-                    ? "rgba(255,255,255,0.1)"
-                    : "rgba(0,0,0,0.06)"
-                  : "transparent",
-                color: isActive ? "text.primary" : "text.disabled",
+                  ? (theme) => alpha(theme.palette.primary.main, 0.12)
+                  : (theme) => alpha(theme.palette.action.disabled, 0.1),
+                color: isActive ? "primary.main" : "text.secondary",
+                transition: "all 0.2s ease",
               }}
             >
               {count}
@@ -85,10 +76,6 @@ BoardTabItem.displayName = "BoardTabItem";
 
 export const BoardTabsBar: React.FC<BoardTabsBarProps> = React.memo(
   ({ boards, activeBoardId, onTabChange, getColumnCount, onCreateBoard }) => {
-    const theme = useTheme();
-    const isDarkMode = theme.palette.mode === "dark";
-
-    // ⚡ הגנה: ודאות ש-activeBoardId קיים במערך הלוחות כדי למנוע אזהרות MUI בזמן טעינה
     const validActiveValue = boards.some((b) => b.id === activeBoardId)
       ? activeBoardId
       : false;
@@ -97,12 +84,12 @@ export const BoardTabsBar: React.FC<BoardTabsBarProps> = React.memo(
       <Box
         sx={{
           display: "flex",
-          flexDirection: "row",
           alignItems: "center",
           gap: 1,
-          bgcolor: isDarkMode
-            ? "rgba(255, 255, 255, 0.03)"
-            : "rgba(0, 0, 0, 0.03)",
+          bgcolor: (theme) =>
+            theme.palette.mode === "dark"
+              ? alpha(theme.palette.common.white, 0.04)
+              : alpha(theme.palette.common.black, 0.03),
           p: 0.6,
           borderRadius: "12px",
           border: "1px solid",
@@ -116,7 +103,9 @@ export const BoardTabsBar: React.FC<BoardTabsBarProps> = React.memo(
           scrollButtons="auto"
           sx={{
             minHeight: "36px",
+            alignItems: "center",
             "& .MuiTabs-indicator": { display: "none" },
+            "& .MuiTabs-flexContainer": { gap: 0.5 },
           }}
         >
           {boards.map((board) => {
@@ -126,11 +115,10 @@ export const BoardTabsBar: React.FC<BoardTabsBarProps> = React.memo(
             return (
               <BoardTabItem
                 key={board.id}
-                value={board.id} // 👈 העברת ה-value שנדרש על ידי MUI Tabs
+                value={board.id}
                 board={board}
                 isActive={isActive}
                 count={count}
-                isDarkMode={isDarkMode}
               />
             );
           })}
@@ -147,10 +135,9 @@ export const BoardTabsBar: React.FC<BoardTabsBarProps> = React.memo(
               color: "text.secondary",
               border: "1px dashed",
               borderColor: "divider",
+              transition: "all 0.2s ease",
               "&:hover": {
-                bgcolor: isDarkMode
-                  ? "rgba(255, 255, 255, 0.08)"
-                  : "rgba(0, 0, 0, 0.05)",
+                bgcolor: (theme) => alpha(theme.palette.primary.main, 0.08),
                 color: "primary.main",
                 borderColor: "primary.main",
               },

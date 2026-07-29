@@ -11,35 +11,96 @@ const ProjectThemeContext = createContext<null | ThemeContextType>(null);
 function ProjectThemeProvider({ children }: { children: ReactNode }) {
   const [isDark, setIsDark] = useState(false);
 
-  // הגדרת ערכי ה-Theme המשודרגים על פי מצב הסטייט
+  // הגדרת ערכי ה-Theme המלאים עם פלטת צבעים מותאמת
   const theme = createTheme({
     palette: {
       mode: isDark ? "dark" : "light",
       ...(isDark
         ? {
-            // 🌙 פלטת כחול-לילה עמוק ומקצועי (Rich Deep Navy)
-            background: {
-              default: "#0A1128", // השכבה הכי תחתונה (MAIN) - כחול לילה עמוק מאוד
-              paper: "#1C2541", // כרטיסי המשימות (השכבה הצפה) - כחול פלדה מעט בהיר יותר
+            // 🌙 מצב כהה - Rich Deep Navy
+            primary: {
+              main: "#3B82F6", // כחול רויאל מודרני ובולט
+              dark: "#1D4ED8", // כחול עמוק לגרדיאנטים ומצבי פוקוס
+              light: "#60A5FA",
+              contrastText: "#FFFFFF",
             },
-            // רקע העמודות (שכבת הביניים) - בדיוק באמצע בין ה-Default ל-Paper
+            secondary: {
+              main: "#e78bfa", // ורוד נעים למשימות שלי
+              dark: "#ea3aed",
+              light: "#fdb5fd",
+              contrastText: "#FFFFFF",
+            },
+            warning: {
+              main: "#FBBF24", // זהב-חם נעים לעין לפריטים שמורים
+              dark: "#D97706",
+              light: "#FDE68A",
+              contrastText: "#1A1F26",
+            },
+            error: {
+              main: "#F87171", // אדום רך שאינו מעייף את העין ברקע כהה
+              dark: "#DC2626",
+              light: "#FCA5A5",
+              contrastText: "#FFFFFF",
+            },
+            success: {
+              main: "#34D399", // ירוק אמרלד רענן
+              dark: "#059669",
+              light: "#6EE7B7",
+              contrastText: "#1A1F26",
+            },
+            background: {
+              default: "#0A1128", // השכבה הכי תחתונה (MAIN) - כחול לילה עמוק
+              paper: "#1C2541", // כרטיסים ופאנלים צפים
+            },
             action: {
-              hover: "#111A33",
+              hover: "#111A33", // שכבת ביניים (לרקע טאבים ושדות קלט)
+              selected: "rgba(59, 130, 246, 0.16)",
             },
             text: {
-              primary: "#E2E8F0", // טקסט לבן-כחלחל עדין (לא שורף את העין)
+              primary: "#E2E8F0", // טקסט לבן-כחלחל קריא
               secondary: "#94A3B8",
             },
-            divider: "#3A506B", // קווים מפרידים בגוון כחול-אפרפר עמום שישתלב בטבעיות
+            divider: "#3A506B", // קווים מפרידים בגוון כחול-אפרפר
           }
         : {
-            // ☀️ המצב הבהיר נשאר נקי ורך כמו מקודם
+            // ☀️ מצב בהיר - נקי, רך וחד
+            primary: {
+              main: "#2563EB", // כחול אינטנסיבי וחד
+              dark: "#1E40AF",
+              light: "#3B82F6",
+              contrastText: "#FFFFFF",
+            },
+            secondary: {
+              main: "#7C3AED", // סגול עמוק
+              dark: "#5B21B6",
+              light: "#A78BFA",
+              contrastText: "#FFFFFF",
+            },
+            warning: {
+              main: "#D97706", // כתום-זהב קריא על רקע בהיר
+              dark: "#B45309",
+              light: "#FBBF24",
+              contrastText: "#FFFFFF",
+            },
+            error: {
+              main: "#EF4444",
+              dark: "#B91C1C",
+              light: "#F87171",
+              contrastText: "#FFFFFF",
+            },
+            success: {
+              main: "#10B981",
+              dark: "#047857",
+              light: "#34D399",
+              contrastText: "#FFFFFF",
+            },
             background: {
               default: "#F8F9FA",
               paper: "#FFFFFF",
             },
             action: {
               hover: "#F1F3F5",
+              selected: "rgba(37, 99, 235, 0.08)",
             },
             text: {
               primary: "#1A1F26",
@@ -48,17 +109,16 @@ function ProjectThemeProvider({ children }: { children: ReactNode }) {
             divider: "#E9ECEF",
           }),
     },
-    // בונוס מקצועי: עיצוב גלובלי לרכיבי ה-Paper במערכת (מבטל את הצלליות הצועקות)
     components: {
       MuiPaper: {
         defaultProps: {
-          elevation: 0, // ביטול הצל המובנה של MUI כברירת מחדל
+          elevation: 0,
         },
         styleOverrides: {
           root: ({ theme }) => ({
             border: "1px solid",
-            borderColor: theme.palette.divider, // מסגרת דקה בצבע הדיביידר המוגדר למעלה
-            transition: "all 0.2s ease-in-out", // אנימציה חלקה במעבר בין מצבים
+            borderColor: theme.palette.divider,
+            transition: "all 0.2s ease-in-out",
           }),
         },
       },

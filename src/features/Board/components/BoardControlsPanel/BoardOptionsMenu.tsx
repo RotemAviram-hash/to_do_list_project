@@ -6,6 +6,7 @@ import {
   ListItemIcon,
   ListItemText,
   Tooltip,
+  alpha,
 } from "@mui/material";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
@@ -17,21 +18,6 @@ interface BoardOptionsMenuProps {
   disabled?: boolean;
 }
 
-// ⚡ אופטימיזציה: הוצאת הסטייל הסטטי מחוץ לקומפוננטה
-const MENU_PAPER_PROPS = {
-  paper: {
-    sx: { borderRadius: "12px", minWidth: 150, mt: 1, boxShadow: 4 },
-  },
-};
-
-const ICON_BUTTON_SX = {
-  border: "1px solid",
-  borderColor: "divider",
-  borderRadius: "10px",
-  p: 0.8,
-};
-
-// ⚡ אופטימיזציה: עטיפה ב-React.memo
 export const BoardOptionsMenu: React.FC<BoardOptionsMenuProps> = React.memo(
   ({ onEdit, onDelete, disabled = false }) => {
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -62,7 +48,17 @@ export const BoardOptionsMenu: React.FC<BoardOptionsMenuProps> = React.memo(
               size="small"
               onClick={handleOpen}
               disabled={disabled}
-              sx={ICON_BUTTON_SX}
+              sx={{
+                border: "1px solid",
+                borderColor: "divider",
+                borderRadius: "10px",
+                p: 0.8,
+                transition: "all 0.2s ease",
+                "&:hover": {
+                  bgcolor: (theme) => alpha(theme.palette.action.hover, 0.1),
+                  borderColor: "text.secondary",
+                },
+              }}
             >
               <MoreVertIcon sx={{ fontSize: 18, color: "text.secondary" }} />
             </IconButton>
@@ -73,20 +69,52 @@ export const BoardOptionsMenu: React.FC<BoardOptionsMenuProps> = React.memo(
           anchorEl={anchorEl}
           open={Boolean(anchorEl)}
           onClose={handleClose}
-          slotProps={MENU_PAPER_PROPS}
+          slotProps={{
+            paper: {
+              sx: {
+                borderRadius: "12px",
+                minWidth: 160,
+                mt: 1,
+                boxShadow: (theme) => theme.shadows[4],
+                border: "1px solid",
+                borderColor: "divider",
+              },
+            },
+          }}
+          transformOrigin={{ horizontal: "left", vertical: "top" }}
+          anchorOrigin={{ horizontal: "left", vertical: "bottom" }}
         >
-          <MenuItem onClick={handleEditClick}>
+          <MenuItem onClick={handleEditClick} sx={{ py: 1, px: 1.5 }}>
             <ListItemIcon>
-              <EditOutlinedIcon sx={{ fontSize: 18 }} />
+              <EditOutlinedIcon
+                sx={{ fontSize: 18, color: "text.secondary" }}
+              />
             </ListItemIcon>
-            <ListItemText primary="עריכת לוח" />
+
+            <ListItemText
+              primary="עריכת לוח"
+              primaryTypographyProps={{ fontSize: "0.85rem", fontWeight: 500 }}
+            />
           </MenuItem>
 
-          <MenuItem onClick={handleDeleteClick} sx={{ color: "error.main" }}>
+          <MenuItem
+            onClick={handleDeleteClick}
+            sx={{
+              py: 1,
+              px: 1.5,
+              color: "error.main",
+              "&:hover": {
+                bgcolor: (theme) => alpha(theme.palette.error.main, 0.08),
+              },
+            }}
+          >
             <ListItemIcon>
               <DeleteOutlinedIcon sx={{ fontSize: 18, color: "error.main" }} />
             </ListItemIcon>
-            <ListItemText primary="מחיקת לוח" />
+            <ListItemText
+              primary="מחיקת לוח"
+              primaryTypographyProps={{ fontSize: "0.85rem", fontWeight: 500 }}
+            />
           </MenuItem>
         </Menu>
       </>

@@ -12,7 +12,6 @@ interface BoardHeaderProps {
   onManageAccess?: () => void;
 }
 
-// ⚡ אופטימיזציה: עטיפה ב-React.memo
 export const BoardHeader: React.FC<BoardHeaderProps> = React.memo(
   ({ onAddColumn, isPublic, onTogglePrivacy, members, onManageAccess }) => {
     const theme = useTheme();
@@ -24,37 +23,45 @@ export const BoardHeader: React.FC<BoardHeaderProps> = React.memo(
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          pb: 1.5,
+          pb: 2,
           borderBottom: "1px solid",
-          borderColor: "divider",
+          borderColor: isDark
+            ? alpha(theme.palette.divider, 0.6)
+            : alpha(theme.palette.divider, 0.8),
           flexWrap: "wrap",
-          gap: 1.5,
+          gap: 2,
         }}
       >
-        {/* כפתור הוספת עמודה */}
+        {/* כפתור הוספת עמודה - עיצוב Soft Primary ברמת הגימור */}
         <Button
-          size="small"
+          size="medium"
           onClick={onAddColumn}
-          startIcon={<AddRoundedIcon sx={{ fontSize: 18 }} />}
+          startIcon={<AddRoundedIcon sx={{ fontSize: 20 }} />}
           sx={{
-            borderRadius: "8px",
-            px: 2,
-            py: 0.6,
-            fontSize: "0.825rem",
-            fontWeight: 600,
+            borderRadius: "10px",
+            px: 2.2,
+            py: 0.8,
+            fontSize: "0.85rem",
+            fontWeight: 650,
             textTransform: "none",
             bgcolor: isDark
-              ? alpha(theme.palette.primary.main, 0.15)
-              : alpha(theme.palette.primary.main, 0.08),
-            color: "primary.main",
+              ? alpha(theme.palette.primary.main, 0.16)
+              : alpha(theme.palette.primary.main, 0.09),
+            color: theme.palette.primary.main,
             border: "1px solid",
-            borderColor: alpha(theme.palette.primary.main, 0.2),
-            transition: "all 0.2s",
+            borderColor: alpha(theme.palette.primary.main, 0.25),
+            boxShadow: "0 2px 6px rgba(0,0,0,0.03)",
+            transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
             "&:hover": {
               bgcolor: isDark
-                ? alpha(theme.palette.primary.main, 0.25)
-                : alpha(theme.palette.primary.main, 0.15),
-              borderColor: "primary.main",
+                ? alpha(theme.palette.primary.main, 0.28)
+                : alpha(theme.palette.primary.main, 0.16),
+              borderColor: theme.palette.primary.main,
+              transform: "translateY(-1px)",
+              boxShadow: `0 4px 12px ${alpha(theme.palette.primary.main, 0.2)}`,
+            },
+            "&:active": {
+              transform: "translateY(0)",
             },
           }}
         >

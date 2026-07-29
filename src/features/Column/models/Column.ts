@@ -4,7 +4,12 @@ export type ColumnTheme =
   | "green"
   | "yellow"
   | "purple"
-  | "gray";
+  | "gray"
+  | "cyan"
+  | "pink"
+  | "orange"
+  | "indigo"
+  | "teal";
 
 export interface Column {
   id: string;

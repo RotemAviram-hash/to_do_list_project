@@ -1,19 +1,15 @@
 import React, { useCallback } from "react";
-import { Box, InputBase, alpha, useTheme } from "@mui/material";
+import { Box, InputBase, IconButton, alpha, Tooltip } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
+import ClearIcon from "@mui/icons-material/Clear";
 
 interface BoardSearchBarProps {
   searchQuery: string;
   onSearchChange: (val: string) => void;
 }
 
-// ⚡ אופטימיזציה: עטיפה ב-React.memo מונעת רירונדר של החיפוש בעת שינוי בלוחות/סינונים
 export const BoardSearchBar: React.FC<BoardSearchBarProps> = React.memo(
   ({ searchQuery, onSearchChange }) => {
-    const theme = useTheme();
-    const isDarkMode = theme.palette.mode === "dark";
-
-    // ⚡ אופטימיזציה: ייצוב ה-Handler למניעת יצירה מחדש בכל הקלדה
     const handleChange = useCallback(
       (e: React.ChangeEvent<HTMLInputElement>) => {
         onSearchChange(e.target.value);
@@ -21,33 +17,47 @@ export const BoardSearchBar: React.FC<BoardSearchBarProps> = React.memo(
       [onSearchChange],
     );
 
+    const handleClear = useCallback(() => {
+      onSearchChange("");
+    }, [onSearchChange]);
+
     return (
       <Box
         sx={{
           display: "flex",
-          flexDirection: "row",
           alignItems: "center",
           px: 1.5,
-          py: 0.5,
+          py: 0.4,
           borderRadius: "10px",
-          bgcolor: isDarkMode ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.03)",
+          bgcolor: (theme) =>
+            theme.palette.mode === "dark"
+              ? alpha(theme.palette.common.white, 0.04)
+              : alpha(theme.palette.common.black, 0.03),
           border: "1px solid transparent",
-          transition: "all 0.2s",
-          width: 220,
+          transition: "all 0.2s ease-in-out",
+          width: { xs: "100%", sm: 260 },
           "&:focus-within": {
             borderColor: "primary.main",
             bgcolor: "background.paper",
-            boxShadow: `0 0 0 3px ${alpha(theme.palette.primary.main, 0.1)}`,
+            boxShadow: (theme) =>
+              `0 0 0 3px ${alpha(theme.palette.primary.main, 0.15)}`,
           },
         }}
       >
-        <SearchIcon sx={{ fontSize: 18, color: "text.disabled", mr: 1 }} />
+        <SearchIcon sx={{ fontSize: 18, color: "text.secondary", mr: 1 }} />
         <InputBase
-          placeholder="סינון/חיפוש..."
+          placeholder="סינון/חיפוש משימות..."
           value={searchQuery}
           onChange={handleChange}
           sx={{ fontSize: "0.85rem", width: "100%" }}
         />
+        {searchQuery && (
+          <Tooltip title="ניקוי">
+            <IconButton size="small" onClick={handleClear} sx={{ p: 0.2 }}>
+              <ClearIcon sx={{ fontSize: 16, color: "text.secondary" }} />
+            </IconButton>
+          </Tooltip>
+        )}
       </Box>
     );
   },

@@ -1,8 +1,10 @@
 import React, {
   createContext,
+  useContext,
   useState,
   useEffect,
   useCallback,
+  useMemo, // 👈 1. מייבאים useMemo
   type ReactNode,
 } from "react";
 import type { UserProfile } from "../models/User";
@@ -52,34 +54,23 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
     setUser(null);
   }, []);
 
-  // 🟢 כותב ל-Firestore בלבד – המאזין דואג לעדכן את ה-UI בלייב!
   const updateProfile = useCallback(
     async (data: Partial<UserProfile>) => {
-      console.log("1. updateProfile נקראה עם הנתונים:", data);
-
       if (!user) {
-        console.error("❌ שגיאה: user ב-Store הוא null!");
-        return;
+        throw new Error("Cannot update profile: No authenticated user");
       }
 
-      try {
-        const updatedFields: Partial<UserProfile> = {
-          ...data,
-          updatedAt: new Date().toISOString(),
-        };
+      const updatedFields: Partial<UserProfile> = {
+        ...data,
+        updatedAt: new Date().toISOString(),
+      };
 
-        console.log("2. שולח עדכון ל-Firestore עבור UID:", user.id);
-        await userRepository.update(user.id, updatedFields);
-        console.log("3. ✅ העדכון נשלח בהצלחה ל-Firestore!");
-      } catch (error) {
-        console.error("❌ שגיאה בשליחה ל-Firestore:", error);
-      }
+      await userRepository.update(user.id, updatedFields);
     },
     [user],
   );
 
   useEffect(() => {
-    // 🎧 הירשמות למאזין הראשי בלייב
     const unsubscribe = authService.subscribeToAuthChanges((userProfile) => {
       setUser(userProfile);
       setLoading(false);
@@ -88,11 +79,20 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
     return () => unsubscribe();
   }, []);
 
+  // ⚡ 2. אופטימיזציה מלאה: עטיפת אובייקט ה-Context ב-useMemo
+  const contextValue = useMemo(
+    () => ({
+      user,
+      loading,
+      signup,
+      login,
+      logout,
+      updateProfile,
+    }),
+    [user, loading, signup, login, logout, updateProfile],
+  );
+
   return (
-    <UserContext.Provider
-      value={{ user, loading, signup, login, logout, updateProfile }}
-    >
-      {children}
-    </UserContext.Provider>
+    <UserContext.Provider value={contextValue}>{children}</UserContext.Provider>
   );
 };

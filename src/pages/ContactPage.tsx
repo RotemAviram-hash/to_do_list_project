@@ -1,321 +1,349 @@
-import React, { useState } from "react";
+import React from "react";
 import {
   Typography,
   Box,
-  TextField,
-  Button,
   Paper,
   Grid,
-  Alert,
-  Fade,
   Container,
-  InputAdornment,
+  alpha,
+  useTheme,
+  Button,
 } from "@mui/material";
-import SendIcon from "@mui/icons-material/Send";
-import EmailIcon from "@mui/icons-material/Email";
-import PhoneIcon from "@mui/icons-material/Phone";
-import LocationOnIcon from "@mui/icons-material/LocationOn";
-import PersonIcon from "@mui/icons-material/Person";
-import MessageIcon from "@mui/icons-material/Message";
+import EmailRoundedIcon from "@mui/icons-material/EmailRounded";
+import PhoneRoundedIcon from "@mui/icons-material/PhoneRounded";
+import SupportAgentRoundedIcon from "@mui/icons-material/SupportAgentRounded";
+import ArrowBackRoundedIcon from "@mui/icons-material/ArrowBackRounded";
+import ChatRoundedIcon from "@mui/icons-material/ChatRounded";
 
 const ContactPage: React.FC = () => {
-  const [formData, setFormData] = useState({
-    fullName: "",
-    email: "",
-    message: "",
-  });
-  const [status, setStatus] = useState("");
-
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-  ) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleSubmit = (event: React.FormEvent) => {
-    event.preventDefault();
-    console.log("Form Data Submitted:", formData);
-    setStatus("ההודעה נשלחה בהצלחה! נחזור אליך בהקדם.");
-    setFormData({ fullName: "", email: "", message: "" });
-    setTimeout(() => setStatus(""), 4000);
-  };
+  const theme = useTheme();
+  const isDark = theme.palette.mode === "dark";
 
   return (
-    // אנימציית כניסה חלקה לכל הדף בזמן טעינה
-    <Fade in={true} timeout={600}>
-      <Container maxWidth="lg" dir="rtl" sx={{ py: { xs: 4, md: 8 } }}>
-        <Paper
-          elevation={0}
-          sx={{
-            borderRadius: "24px",
-            overflow: "hidden",
-            border: "1px solid",
-            borderColor: "divider",
-            bgcolor: "background.paper",
-            boxShadow: (theme) =>
-              theme.palette.mode === "dark"
-                ? "0 12px 40px rgba(0,0,0,0.3)"
-                : "0 12px 32px rgba(0,0,0,0.03)",
-          }}
-        >
-          <Grid container>
-            {/* טור 1: מידע קשר מפותח עם עיצוב זכוכית (Glassmorphism) */}
-            <Grid
-              size={{ xs: 12, md: 5 }}
+    <Box
+      dir="rtl"
+      sx={{
+        bgcolor: "background.default",
+        color: "text.primary",
+        minHeight: "100vh",
+        py: { xs: 8, md: 12 },
+        position: "relative",
+        overflow: "hidden",
+      }}
+    >
+      {/* תאורת רקע רכה ואבסטרקטית */}
+      <Box
+        sx={{
+          position: "absolute",
+          top: "-10%",
+          left: "50%",
+          transform: "translateX(-50%)",
+          width: { xs: "100%", md: "900px" },
+          height: "500px",
+          background: isDark
+            ? "radial-gradient(circle, rgba(99,102,241,0.12) 0%, rgba(0,0,0,0) 70%)"
+            : "radial-gradient(circle, rgba(79,70,229,0.08) 0%, rgba(255,255,255,0) 70%)",
+          filter: "blur(90px)",
+          pointerEvents: "none",
+          zIndex: 0,
+        }}
+      />
+
+      <Container maxWidth="lg" sx={{ position: "relative", zIndex: 1 }}>
+        {/* כותרת ראשית */}
+        <Box sx={{ textAlign: "center", mb: 8 }}>
+          <Box
+            sx={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 1,
+              px: 2,
+              py: 0.8,
+              borderRadius: "50px",
+              bgcolor: isDark ? alpha("#ffffff", 0.04) : alpha("#000000", 0.03),
+              border: "1px solid",
+              borderColor: "divider",
+              mb: 2.5,
+            }}
+          >
+            <SupportAgentRoundedIcon
+              sx={{ fontSize: "16px", color: "primary.main" }}
+            />
+            <Typography
               sx={{
-                background: (theme) =>
-                  theme.palette.mode === "dark"
-                    ? "linear-gradient(135deg, #1e293b 0%, #0f172a 100%)"
-                    : "linear-gradient(135deg, #1976d2 0%, #1565c0 100%)",
-                color: "white",
-                p: { xs: 4, md: 6 },
+                fontSize: "0.75rem",
+                fontWeight: 700,
+                color: "text.secondary",
+                letterSpacing: "0.5px",
+              }}
+            >
+              מרכז עזרה ותמיכה
+            </Typography>
+          </Box>
+
+          <Typography
+            variant="h2"
+            sx={{
+              fontWeight: 900,
+              fontSize: { xs: "2.25rem", sm: "3.25rem" },
+              letterSpacing: "-1.5px",
+              mb: 2,
+            }}
+          >
+            איך אפשר לעזור{" "}
+            <Box
+              component="span"
+              sx={{
+                background: "linear-gradient(135deg, #6366f1 0%, #a855f7 100%)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+              }}
+            >
+              לך היום?
+            </Box>
+          </Typography>
+
+          <Typography
+            variant="body1"
+            sx={{
+              color: "text.secondary",
+              fontSize: { xs: "0.95rem", sm: "1.1rem" },
+              maxWidth: "550px",
+              mx: "auto",
+              lineHeight: 1.6,
+            }}
+          >
+            בחרנו לרכז עבורך את כל דרכי ההתקשרות המהירות ביותר, ללא טפסים
+            מיותרים. פשוט פנה אלינו ישירות.
+          </Typography>
+        </Box>
+
+        {/* מבנה גריד בסגנון Bento */}
+        <Grid container spacing={3}>
+          {/* כרטיס ראשי - אימייל ישיר */}
+          <Grid size={{ xs: 12, md: 8 }}>
+            <Paper
+              elevation={0}
+              sx={{
+                p: { xs: 4, sm: 5 },
+                height: "100%",
+                borderRadius: "28px",
+                bgcolor: isDark ? alpha("#ffffff", 0.02) : "background.paper",
+                border: "1px solid",
+                borderColor: "divider",
                 display: "flex",
                 flexDirection: "column",
                 justifyContent: "space-between",
-                gap: 5,
+                position: "relative",
+                overflow: "hidden",
+                transition: "all 0.3s ease",
+                "&:hover": {
+                  borderColor: "primary.main",
+                  boxShadow: isDark
+                    ? "0 10px 30px rgba(0,0,0,0.5)"
+                    : "0 10px 30px rgba(0,0,0,0.03)",
+                },
               }}
             >
               <Box>
-                <Typography
-                  variant="h4"
-                  component="h2"
-                  sx={{ fontWeight: "800", mb: 2, letterSpacing: "0.5px" }}
+                <Box
+                  sx={{
+                    width: 48,
+                    height: 48,
+                    borderRadius: "14px",
+                    bgcolor: alpha("#6366f1", 0.1),
+                    color: "primary.main",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    mb: 3,
+                  }}
                 >
-                  מידע ליצירת קשר
+                  <EmailRoundedIcon />
+                </Box>
+                <Typography variant="h5" sx={{ fontWeight: 800, mb: 1 }}>
+                  פנייה ישירה בדוא״ל
                 </Typography>
                 <Typography
                   variant="body2"
-                  sx={{ opacity: 0.85, lineHeight: 1.6, fontSize: "0.95rem" }}
+                  sx={{ color: "text.secondary", mb: 4, lineHeight: 1.7 }}
                 >
-                  אנחנו כאן בשבילכם לכל שאלה, פידבק או הצעה במערכת. מלאו את
-                  הטופס ונציג מהצוות שלנו יחזור אליכם תוך 24 שעות.
+                  הדרך המהירה ביותר לקבל מענה אנושי אמיתי. שלח אלינו הודעה
+                  לכתובת המייל ונחזור אליך תוך מספר שעות בודדות.
                 </Typography>
               </Box>
 
-              {/* רשימת פרטי קשר משודרגת ככרטיסים קטנים */}
-              <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                {[
-                  {
-                    icon: <PhoneIcon />,
-                    label: "טלפון זמין",
-                    value: "050-1234567",
-                  },
-                  {
-                    icon: <EmailIcon />,
-                    label: "אימייל לתמיכה",
-                    value: "support@taskflow.com",
-                  },
-                  {
-                    icon: <LocationOnIcon />,
-                    label: "המיקום שלנו",
-                    value: "תל אביב, ישראל",
-                  },
-                ].map((item, idx) => (
-                  <Box
-                    key={idx}
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 2.5,
-                      p: 2,
-                      borderRadius: "12px",
-                      bgcolor: "rgba(255, 255, 255, 0.06)",
-                      border: "1px solid rgba(255, 255, 255, 0.1)",
-                      backdropFilter: "blur(4px)",
-                      transition: "all 0.2s ease",
-                      "&:hover": {
-                        bgcolor: "rgba(255, 255, 255, 0.12)",
-                        transform: "translateX(-4px)", // זז מעט ימינה (RTL) בריחוף
-                      },
-                    }}
-                  >
-                    <Box sx={{ display: "flex", color: "white", opacity: 0.9 }}>
-                      {item.icon}
-                    </Box>
-                    <Box>
-                      <Typography
-                        variant="caption"
-                        sx={{
-                          display: "block",
-                          opacity: 0.6,
-                          fontWeight: "500",
-                        }}
-                      >
-                        {item.label}
-                      </Typography>
-                      <Typography
-                        variant="body2"
-                        sx={{ fontWeight: "600", fontSize: "0.95rem" }}
-                      >
-                        {item.value}
-                      </Typography>
-                    </Box>
-                  </Box>
-                ))}
-              </Box>
-
-              <Typography
-                variant="caption"
-                sx={{ opacity: 0.5, fontWeight: "600", letterSpacing: "0.5px" }}
-              >
-                TaskFlow • פלטפורמה חכמה לניהול משימות
-              </Typography>
-            </Grid>
-
-            {/* טור 2: הטופס המשודרג עם אייקונים מובנים פנימה */}
-            <Grid
-              size={{ xs: 12, md: 7 }}
-              sx={{
-                p: { xs: 4, md: 6 },
-                display: "flex",
-                flexDirection: "column",
-                justifyContent: "center",
-              }}
-            >
-              <Typography
-                variant="h5"
+              <Button
+                variant="contained"
+                size="large"
+                href="mailto:rotemschool112@gmail.com"
+                endIcon={
+                  <ArrowBackRoundedIcon
+                    sx={{ transform: "scaleX(-1)", mr: 1 }}
+                  />
+                }
                 sx={{
-                  fontWeight: "800",
-                  mb: 4,
-                  color: "text.primary",
-                  letterSpacing: "0.3px",
+                  alignSelf: "flex-start",
+                  py: 1.5,
+                  px: 4,
+                  borderRadius: "14px",
+                  fontWeight: 700,
+                  textTransform: "none",
+                  bgcolor: "#6366f1",
+                  color: "#ffffff",
+                  boxShadow: "0 8px 20px rgba(99,102,241,0.3)",
+                  "&:hover": {
+                    bgcolor: "#4f46e5",
+                  },
                 }}
               >
-                שלחו לנו הודעה
-              </Typography>
-
-              <form onSubmit={handleSubmit}>
-                <Grid container spacing={3}>
-                  {/* שדה שם מלא */}
-                  <Grid size={12}>
-                    <TextField
-                      fullWidth
-                      label="שם מלא"
-                      name="fullName"
-                      value={formData.fullName}
-                      onChange={handleChange}
-                      variant="outlined"
-                      required
-                      slotProps={{
-                        input: {
-                          startAdornment: (
-                            <InputAdornment position="start">
-                              <PersonIcon
-                                fontSize="small"
-                                sx={{ color: "text.secondary" }}
-                              />
-                            </InputAdornment>
-                          ),
-                        },
-                      }}
-                    />
-                  </Grid>
-
-                  {/* שדה אימייל */}
-                  <Grid size={12}>
-                    <TextField
-                      fullWidth
-                      label="כתובת אימייל"
-                      name="email"
-                      type="email"
-                      value={formData.email}
-                      onChange={handleChange}
-                      variant="outlined"
-                      required
-                      slotProps={{
-                        input: {
-                          startAdornment: (
-                            <InputAdornment position="start">
-                              <EmailIcon
-                                fontSize="small"
-                                sx={{ color: "text.secondary" }}
-                              />
-                            </InputAdornment>
-                          ),
-                        },
-                      }}
-                    />
-                  </Grid>
-
-                  {/* שדה תוכן ההודעה */}
-                  <Grid size={12}>
-                    <TextField
-                      fullWidth
-                      label="מה תרצו להגיד לנו?"
-                      name="message"
-                      multiline
-                      rows={4}
-                      value={formData.message}
-                      onChange={handleChange}
-                      variant="outlined"
-                      required
-                      slotProps={{
-                        input: {
-                          startAdornment: (
-                            <InputAdornment
-                              position="start"
-                              sx={{ alignSelf: "flex-start", mt: 1.5 }}
-                            >
-                              <MessageIcon
-                                fontSize="small"
-                                sx={{ color: "text.secondary" }}
-                              />
-                            </InputAdornment>
-                          ),
-                        },
-                      }}
-                    />
-                  </Grid>
-
-                  {/* כפתור שליחה מעוצב עם רוחב מותאם */}
-                  <Grid size={12} sx={{ mt: 1 }}>
-                    <Button
-                      variant="contained"
-                      size="large"
-                      type="submit"
-                      disableElevation
-                      endIcon={
-                        <SendIcon sx={{ transform: "scaleX(-1)", mr: 1.5 }} />
-                      }
-                      sx={{
-                        px: 5,
-                        py: 1.6,
-                        fontSize: "0.95rem",
-                        fontWeight: "700",
-                        borderRadius: "12px",
-                        textTransform: "none",
-                        boxShadow: (theme) =>
-                          theme.palette.mode === "dark"
-                            ? "0 4px 12px rgba(144, 202, 249, 0.2)"
-                            : "0 4px 12px rgba(25, 118, 210, 0.2)",
-                      }}
-                    >
-                      שליחת הודעה
-                    </Button>
-                  </Grid>
-
-                  {/* סטטוס שליחה */}
-                  {status && (
-                    <Grid size={12}>
-                      <Fade in={Boolean(status)}>
-                        <Alert
-                          severity="success"
-                          variant="outlined"
-                          sx={{ borderRadius: "12px", fontWeight: "600" }}
-                        >
-                          {status}
-                        </Alert>
-                      </Fade>
-                    </Grid>
-                  )}
-                </Grid>
-              </form>
-            </Grid>
+                rotemschool112@gmail.com
+              </Button>
+            </Paper>
           </Grid>
-        </Paper>
+
+          {/* כרטיס צד - טלפון וזמינות (לחיץ לחיוג) */}
+          <Grid size={{ xs: 12, md: 4 }}>
+            <Paper
+              elevation={0}
+              component="a"
+              href="tel:0524010644"
+              sx={{
+                p: { xs: 4, sm: 5 },
+                height: "100%",
+                borderRadius: "28px",
+                bgcolor: isDark ? alpha("#ffffff", 0.02) : "background.paper",
+                border: "1px solid",
+                borderColor: "divider",
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "space-between",
+                textDecoration: "none",
+                color: "inherit",
+                transition: "all 0.3s ease",
+                cursor: "pointer",
+                "&:hover": {
+                  borderColor: "#10b981",
+                  transform: "translateY(-4px)",
+                  boxShadow: isDark
+                    ? "0 10px 30px rgba(0,0,0,0.5)"
+                    : "0 10px 30px rgba(0,0,0,0.03)",
+                },
+              }}
+            >
+              <Box>
+                <Box
+                  sx={{
+                    width: 48,
+                    height: 48,
+                    borderRadius: "14px",
+                    bgcolor: alpha("#10b981", 0.1),
+                    color: "#10b981",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    mb: 3,
+                  }}
+                >
+                  <PhoneRoundedIcon />
+                </Box>
+                <Typography variant="h5" sx={{ fontWeight: 800, mb: 1 }}>
+                  מוקד טלפוני
+                </Typography>
+                <Typography
+                  variant="body2"
+                  sx={{ color: "text.secondary", mb: 3 }}
+                >
+                  זמינים בימים א'-ה' בין השעות 09:00 עד 18:00. לחץ לחיוג מהיר.
+                </Typography>
+              </Box>
+
+              <Box
+                sx={{
+                  p: 2,
+                  borderRadius: "14px",
+                  bgcolor: isDark
+                    ? alpha("#ffffff", 0.02)
+                    : alpha("#000000", 0.02),
+                  border: "1px solid",
+                  borderColor: "divider",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                }}
+              >
+                <Box>
+                  <Typography
+                    sx={{
+                      fontSize: "0.75rem",
+                      color: "text.secondary",
+                      fontWeight: 600,
+                    }}
+                  >
+                    מספר ישיר לחיוג
+                  </Typography>
+                  <Typography
+                    sx={{
+                      fontSize: "1.1rem",
+                      fontWeight: 800,
+                      color: "text.primary",
+                    }}
+                  >
+                    0524010644
+                  </Typography>
+                </Box>
+                <PhoneRoundedIcon sx={{ color: "#10b981", fontSize: "20px" }} />
+              </Box>
+            </Paper>
+          </Grid>
+
+          {/* כרטיס תחתון - פידבק מהיר */}
+          <Grid size={{ xs: 12, md: 12 }}>
+            <Paper
+              elevation={0}
+              sx={{
+                p: 4,
+                borderRadius: "28px",
+                bgcolor: isDark ? alpha("#ffffff", 0.02) : "background.paper",
+                border: "1px solid",
+                borderColor: "divider",
+                display: "flex",
+                alignItems: "center",
+                gap: 3,
+              }}
+            >
+              <Box
+                sx={{
+                  width: 44,
+                  height: 44,
+                  borderRadius: "12px",
+                  bgcolor: alpha("#f59e0b", 0.1),
+                  color: "#f59e0b",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  flexShrink: 0,
+                }}
+              >
+                <ChatRoundedIcon />
+              </Box>
+              <Box>
+                <Typography
+                  variant="subtitle1"
+                  sx={{ fontWeight: 800, mb: 0.5 }}
+                >
+                  הצעות לשיפור הפיצ'רים
+                </Typography>
+                <Typography variant="body2" sx={{ color: "text.secondary" }}>
+                  יש לך רעיון למערכת? נשמח לשמוע ולהקדיש על כך מחשבה בעיצוב
+                  הגרסאות הבאות. ❤️
+                </Typography>
+              </Box>
+            </Paper>
+          </Grid>
+        </Grid>
       </Container>
-    </Fade>
+    </Box>
   );
 };
 

@@ -1,5 +1,7 @@
 import React, { useMemo } from "react";
-import { Box, useTheme } from "@mui/material";
+import { Box, Typography, Button, Paper, alpha, useTheme } from "@mui/material";
+import ViewColumnRoundedIcon from "@mui/icons-material/ViewColumnRounded";
+import AddRoundedIcon from "@mui/icons-material/AddRounded";
 import type { Column as ColumnType } from "../../../Column/models/Column";
 import type { Task } from "../../../Task/models/Task";
 import Column from "../../../Column/components/Column";
@@ -7,16 +9,15 @@ import Column from "../../../Column/components/Column";
 interface BoardColumnsListProps {
   columns: ColumnType[];
   tasks: Task[];
+  onAddColumn?: () => void;
 }
 
-// ⚡ אופטימיזציה: עטיפה ב-React.memo
 export const BoardColumnsList: React.FC<BoardColumnsListProps> = React.memo(
-  ({ columns, tasks }) => {
+  ({ columns, tasks, onAddColumn }) => {
     const theme = useTheme();
     const isDark = theme.palette.mode === "dark";
 
-    // ⚡ אופטימיזציה קריטית: מילון משימות לפי columnId בסיבוכיות O(N)
-    // מונע ביצוע tasks.filter בלולאה עבור כל עמודה ועמודה בכל רנדור!
+    // ⚡ אופטימיזציה: מילון משימות לפי columnId בסיבוכיות O(N)
     const tasksByColumnMap = useMemo(() => {
       const map: Record<string, Task[]> = {};
       for (const task of tasks) {
@@ -28,32 +29,105 @@ export const BoardColumnsList: React.FC<BoardColumnsListProps> = React.memo(
       return map;
     }, [tasks]);
 
+    // 🌟 מצב ריק (Empty State) במידה ואין עמודות בלוח
+    if (columns.length === 0) {
+      return (
+        <Paper
+          variant="outlined"
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            p: 5,
+            my: 3,
+            borderRadius: "16px",
+            borderStyle: "dashed",
+            borderWidth: "2px",
+            borderColor: alpha(theme.palette.divider, 0.8),
+            bgcolor: isDark
+              ? alpha(theme.palette.background.paper, 0.4)
+              : alpha(theme.palette.action.hover, 0.3),
+            textAlign: "center",
+          }}
+        >
+          <Box
+            sx={{
+              p: 2,
+              borderRadius: "50%",
+              bgcolor: alpha(theme.palette.primary.main, 0.1),
+              color: "primary.main",
+              mb: 2,
+              display: "flex",
+            }}
+          >
+            <ViewColumnRoundedIcon sx={{ fontSize: 38 }} />
+          </Box>
+          <Typography variant="h6" fontWeight={700} gutterBottom>
+            אין עמודות בלוח זה עדיין
+          </Typography>
+          <Typography
+            variant="body2"
+            color="text.secondary"
+            sx={{ maxWidth: 360, mb: 3 }}
+          >
+            כדי להתחיל לארגן את המשימות שלך, צור את העמודה הראשונה (כמו
+            "לביצוע", "בתהליך" או "הושלם").
+          </Typography>
+          {onAddColumn && (
+            <Button
+              variant="contained"
+              startIcon={<AddRoundedIcon />}
+              onClick={onAddColumn}
+              sx={{
+                borderRadius: "10px",
+                textTransform: "none",
+                fontWeight: 600,
+                px: 3,
+                boxShadow: `0 4px 14px ${alpha(theme.palette.primary.main, 0.35)}`,
+              }}
+            >
+              הוסף עמודה ראשונה
+            </Button>
+          )}
+        </Paper>
+      );
+    }
+
     return (
       <Box
         sx={{
           display: "flex",
-          gap: 3,
+          gap: 2.5,
           overflowX: "auto",
           overflowY: "hidden",
           pb: 2,
-          pt: 0.5,
+          pt: 1,
           px: 0.5,
           alignItems: "flex-start",
           flexGrow: 1,
-          "&::-webkit-scrollbar": { height: "8px" },
+          scrollBehavior: "smooth",
+
+          // עיצוב פס גלילה מודרני ועדין
+          "&::-webkit-scrollbar": {
+            height: "8px",
+          },
           "&::-webkit-scrollbar-track": {
-            backgroundColor: "transparent",
-            borderRadius: "10px",
+            backgroundColor: isDark
+              ? alpha(theme.palette.common.white, 0.03)
+              : alpha(theme.palette.common.black, 0.03),
+            borderRadius: "8px",
           },
           "&::-webkit-scrollbar-thumb": {
             backgroundColor: isDark
-              ? "rgba(255, 255, 255, 0.15)"
-              : "rgba(0, 0, 0, 0.15)",
-            borderRadius: "10px",
+              ? alpha(theme.palette.common.white, 0.15)
+              : alpha(theme.palette.common.black, 0.15),
+            borderRadius: "8px",
+            transition: "background-color 0.2s",
             "&:hover": {
               backgroundColor: isDark
-                ? "rgba(255, 255, 255, 0.25)"
-                : "rgba(0, 0, 0, 0.25)",
+                ? alpha(theme.palette.common.white, 0.3)
+                : alpha(theme.palette.common.black, 0.3),
             },
           },
         }}
@@ -73,6 +147,8 @@ export const BoardColumnsList: React.FC<BoardColumnsListProps> = React.memo(
               columns={columns}
             />
           </Box>
+
+          
         ))}
       </Box>
     );
