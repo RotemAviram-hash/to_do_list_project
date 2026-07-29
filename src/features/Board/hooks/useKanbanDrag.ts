@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import type { Column } from "../../Column";
+import type { Column } from "../../Column/models/Column";
 import type { Task } from "../../Task/models/Task";
 
 interface UseKanbanDragProps {
