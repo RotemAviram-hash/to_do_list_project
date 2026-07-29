@@ -1,6 +1,5 @@
 import {
   Typography,
-  Chip,
   Box,
   Divider,
   Container,
@@ -11,8 +10,8 @@ import {
 import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
-import { useParams, useNavigate } from "react-router-dom";
-import { useCallback, useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 import type { Task } from "../features/Task/models/Task";
 
 // פונקציית עזר להמרת כל פורמט תאריך למחרוזת מוצגת בטוחה
@@ -43,9 +42,8 @@ const formatDate = (dateValue: any): string => {
 };
 
 export default function TaskPage() {
-  const [task, setTask] = useState<Task | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
-  const { id } = useParams();
+  const [task] = useState<Task | null>(null);
+  const [loading] = useState<boolean>(false);
   const navigate = useNavigate();
 
   return (
@@ -95,7 +93,7 @@ export default function TaskPage() {
             <Box
               sx={{
                 display: "flex",
-                justify: "space-between",
+                justifyContent: "space-between",
                 alignItems: "center",
                 gap: 2,
                 mb: 1.5,
