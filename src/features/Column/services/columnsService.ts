@@ -1,4 +1,9 @@
 import * as columnRepo from "../repositories/columnRepositoryFirebase";
+// 🟢 ייבוא הפונקציות מה-Repository של הלוח (כולל שליפת הלוח לבדיקה)
+import {
+  incrementColumnCountRepo,
+  getBoardByIdRepo,
+} from "../../Board/repositories/boardRepositoryFirebase";
 import type { Column } from "../models/Column";
 
 /**
@@ -11,8 +16,7 @@ export const listenToColumns = (
 ) => {
   return columnRepo.subscribeToColumnsRepo(
     (columns) => {
-      // אופטימיזציה: מיון העמודות לפי ה-order שלהן (מציג משמאל לימין)
-      // משתמשים ב-[...columns] כדי לא לבצע מוטציה על המערך המקורי
+      // מיון העמודות לפי ה-order שלהן
       const sortedColumns = [...columns].sort((a, b) => a.order - b.order);
 
       onColumnsChange(sortedColumns);
@@ -23,7 +27,7 @@ export const listenToColumns = (
 };
 
 /**
- * 2. יצירת עמודה חדשה כולל ולידציות והוספת תאריכים
+ * 2. יצירת עמודה חדשה כולל ולידציות, הוספת תאריכים ועדכון ספירת העמודות בלוח (+1)
  */
 export const addNewColumn = async (
   columnData: Omit<Column, "id" | "createdAt" | "updatedAt">,
@@ -45,7 +49,17 @@ export const addNewColumn = async (
     createdAt: new Date().toISOString(),
   };
 
-  return await columnRepo.addColumnRepo(cleanColumnData);
+  // 1. הוספת העמודה למסד הנתונים
+  const newColumnId = await columnRepo.addColumnRepo(cleanColumnData);
+
+  // 2. 🟢 עדכון אטומי של הלוח (+1 לעמודות)
+  try {
+    await incrementColumnCountRepo(columnData.boardId, 1);
+  } catch (err) {
+    console.error("שגיאה בעדכון ספירת העמודות בלוח:", err);
+  }
+
+  return newColumnId;
 };
 
 /**
@@ -75,12 +89,32 @@ export const editColumn = async (
 };
 
 /**
- * 4. מחיקת עמודה
+ * 4. מחיקת עמודה ועדכון ספירת העמודות בלוח (-1)
  */
-export const removeColumn = async (id: string): Promise<void> => {
+export const removeColumn = async (
+  id: string,
+  boardId: string,
+): Promise<void> => {
   if (!id) {
     throw new Error("חובה לספק ID למחיקת העמודה");
   }
+  if (!boardId) {
+    throw new Error("חובה לספק boardId למחיקת העמודה");
+  }
 
-  return await columnRepo.deleteColumnRepo(id);
+  // 🟢 מקרה קצה: בדיקה שספירת העמודות בלוח לא קטנה מ-1 (מניעת ירידה מתחת ל-0)
+  const board = await getBoardByIdRepo(boardId);
+  if (!board || (board.columnCount ?? 0) <= 0) {
+    throw new Error("לא ניתן למחוק עמודה - אין עמודות קיימות בלוח זה");
+  }
+
+  // 1. מחיקת העמודה ממסד הנתונים
+  await columnRepo.deleteColumnRepo(id);
+
+  // 2. 🟢 עדכון אטומי של הלוח (-1 לעמודות)
+  try {
+    await incrementColumnCountRepo(boardId, -1);
+  } catch (err) {
+    console.error("שגיאה בעדכון ספירת העמודות בלוח לאחר מחיקה:", err);
+  }
 };

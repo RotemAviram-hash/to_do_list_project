@@ -1,5 +1,4 @@
 import {
-  getFirestore,
   collection,
   doc,
   addDoc,
@@ -9,15 +8,13 @@ import {
   onSnapshot,
   query,
   where,
-  orderBy,
   type Unsubscribe,
   QuerySnapshot,
   type DocumentData,
 } from "firebase/firestore";
-import app from "../../../config/firebase";
+import { db } from "../../../config/firebase";
 import type { Column } from "../models/Column";
 
-const db = getFirestore(app);
 const COLUMNS_COLLECTION = "columns";
 const columnsCollectionRef = collection(db, COLUMNS_COLLECTION);
 

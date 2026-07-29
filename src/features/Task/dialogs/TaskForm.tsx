@@ -6,6 +6,8 @@ import {
   DialogActions,
   DialogContent,
   InputAdornment,
+  Box,
+  Typography,
 } from "@mui/material";
 import TitleIcon from "@mui/icons-material/Title";
 import DescriptionIcon from "@mui/icons-material/Description";
@@ -17,14 +19,10 @@ import AddTaskIcon from "@mui/icons-material/AddTask";
 import { useForm, Controller } from "react-hook-form";
 import { joiResolver } from "@hookform/resolvers/joi";
 import Joi from "joi";
-import type { Column } from "../../Column";
+import type { Column } from "../../Column/models/Column";
 import type { Task } from "../models/Task";
-import type { User } from "../../user";
-
-export interface UserOption {
-  id: string;
-  name: string;
-}
+import type { UserProfile } from "../../User/models/User";
+import { UserAvatar } from "../../User/components/UserAvatar"; // עדכני לפי הנתיב בפרויקט
 
 // 1. הגדרת סכמת הוולידציה עבור משימה
 const taskSchema = Joi.object<Task>({
@@ -52,7 +50,7 @@ const taskSchema = Joi.object<Task>({
 interface TaskFormProps {
   initialValues: Task;
   columns: Column[];
-  users?: User[];
+  users?: UserProfile[];
   onSubmit: (data: Task) => void;
   onClose: () => void;
   submitLabel: string;
@@ -197,11 +195,25 @@ export function TaskForm({
                   <MenuItem value="">
                     <em>ללא אחראי</em>
                   </MenuItem>
-                  {users.map((user) => (
-                    <MenuItem key={user.id} value={user.id}>
-                      {`${user.firstName} ${user.lastName}`}
-                    </MenuItem>
-                  ))}
+                  {users.map((user) => {
+                    const userName = user.displayName || user.email || "משתמש";
+
+                    return (
+                      <MenuItem key={user.id} value={user.id}>
+                        <Box
+                          sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 1.5,
+                            width: "100%",
+                          }}
+                        >
+                          <UserAvatar user={user} size={26} />
+                          <Typography variant="body2">{userName}</Typography>
+                        </Box>
+                      </MenuItem>
+                    );
+                  })}
                 </TextField>
               )}
             />

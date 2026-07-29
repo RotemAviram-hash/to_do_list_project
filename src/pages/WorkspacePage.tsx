@@ -1,37 +1,66 @@
-import React, { useState } from "react";
+import React, { useState, useCallback, useMemo } from "react";
 import { Box, CircularProgress, Typography, Alert } from "@mui/material";
 
 // Components
 import { BoardControlsPanel } from "../features/Board/components/BoardControlsPanel/BoardControlsPanel";
 import { KanbanBoardContainer } from "../features/Board/components/KanbanBoard/KanbanBoardContainer";
 
-// Custom Hooks
+// Custom Hooks & Context
+import { useUser } from "../features/User/hooks/useUser";
 import { useBoards } from "../features/Board/hooks/useBoards";
-import { useColumns } from "../features/Column/hooks/useColumns";
 
-export default function KanbanPreview({ userId }: { userId?: string }) {
-  // 1. סטייטים לסינון
-  const [searchQuery, setSearchQuery] = useState("");
-  const [showOnlySaved, setShowOnlySaved] = useState(false);
-  const [showOnlyMine, setShowOnlyMine] = useState(false);
+// 👈 ייבוא טיפוס הפילטרים מההוק
+import type { FilterOptions } from "../features/Task/hooks/useTaskFilters";
 
-  // 2. קריאה יחידה לשרת עבור כל הלוחות
+export default function KanbanPreview() {
+  const { user, loading: loadingUser } = useUser();
+  const userId = user?.id || "";
+
+  // 🎯 1. איחוד ה-State של כל הפילטרים לאובייקט יחיד
+  const [filters, setFilters] = useState<FilterOptions>({
+    searchQuery: "",
+    showOnlySaved: false,
+    showOnlyMine: false,
+  });
+
+  // קריאה לשרת עבור כל הלוחות
   const {
     boards,
     activeBoardId,
     setActiveBoardId,
-    toggleBoardPrivacy, // 👈 הפונקציה מההוק
+    toggleBoardPrivacy,
+    deleteBoard,
     loading: loadingBoards,
     error: errorBoards,
   } = useBoards(userId);
 
-  // 3. שליפת עמודות לספירה בטאבים
-  const { columns } = useColumns();
+  // 🟢 אופטימיזציה: מציאת הלוח הפעיל רק כשצריך
+  const activeBoard = useMemo(
+    () => boards.find((b) => b.id === activeBoardId),
+    [boards, activeBoardId],
+  );
 
-  // שליפת הלוח הפעיל הנוכחי ומצב הפרטיות שלו
-  const activeBoard = boards.find((b) => b.id === activeBoardId);
+  // 🟢 אופטימיזציה: useCallback למניעת רנדורים מיותרים של פאנל השליטה
+  const handleTabChange = useCallback(
+    (_: React.SyntheticEvent, newBoardId: string) => {
+      setActiveBoardId(newBoardId);
+    },
+    [setActiveBoardId],
+  );
 
-  if (loadingBoards) {
+  const getColumnCount = useCallback(
+    (bId: string) => boards.find((b) => b.id === bId)?.columnCount || 0,
+    [boards],
+  );
+
+  const handleTogglePrivacy = useCallback(() => {
+    if (activeBoardId) {
+      toggleBoardPrivacy(activeBoardId, activeBoard?.isPublic ?? false);
+    }
+  }, [activeBoardId, activeBoard?.isPublic, toggleBoardPrivacy]);
+
+  // טעינה
+  if (loadingUser || loadingBoards) {
     return (
       <Box
         sx={{
@@ -56,32 +85,25 @@ export default function KanbanPreview({ userId }: { userId?: string }) {
 
   return (
     <Box sx={{ p: { xs: 2, md: 4 }, minHeight: "100vh" }}>
-      {/* פאנל שליטה */}
+      {/* פאנל שליטה - מקבל את ה-filters וה-setFilters */}
       <BoardControlsPanel
         boards={boards}
         activeBoardId={activeBoardId || ""}
-        onTabChange={(_, newBoardId) => setActiveBoardId(newBoardId)}
-        getColumnCount={(bId) =>
-          columns.filter((c) => c.boardId === bId).length
-        }
-        currentUserId={userId}
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-        showOnlySaved={showOnlySaved}
-        onToggleSaved={setShowOnlySaved}
-        showOnlyMine={showOnlyMine}
-        onToggleMine={setShowOnlyMine}
+        onTabChange={handleTabChange}
+        getColumnCount={getColumnCount}
+        onDeleteBoard={deleteBoard}
+        filters={filters}
+        setFilters={setFilters}
       />
 
-      {/* תצוגה ראשית של הלוח הפעיל */}
+      {/* תצוגה ראשית של הלוח הפעיל - 🌟 עכשיו מקבלת גם את filters! */}
       {activeBoardId ? (
         <KanbanBoardContainer
           boardId={activeBoardId}
           isPublic={activeBoard?.isPublic ?? false}
-          onTogglePrivacy={() =>
-            toggleBoardPrivacy(activeBoardId, activeBoard?.isPublic ?? false)
-          }
+          onTogglePrivacy={handleTogglePrivacy}
           userId={userId}
+          filters={filters} // 👈 השלמת החוליה החסרה!
         />
       ) : (
         <Box

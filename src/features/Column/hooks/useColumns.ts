@@ -1,12 +1,19 @@
 import { useState, useEffect, useCallback } from "react";
 import * as columnService from "../services/columnsService";
 import type { Column } from "../models/Column";
+import { useUser } from "../../User/hooks/useUser";
+
+// טיפוס עזר לנתונים הנדרשים ביצירת עמודה
+type NewColumnInput = Omit<Column, "id" | "createdAt" | "updatedAt">;
 
 export function useColumns(boardId?: string) {
+  const { user } = useUser();
+  const userId = user?.id || "";
+
   const [columns, setColumns] = useState<Column[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [userId, setuserId] = useState("משתמש זמני - לחבר את יוזר !");
+
   // 1. האזנה בזמן אמת לשינויים בעמודות
   useEffect(() => {
     setLoading(true);
@@ -17,7 +24,7 @@ export function useColumns(boardId?: string) {
         setColumns(updatedColumns);
         setLoading(false);
       },
-      (err) => {
+      (err: Error) => {
         setError(err.message || "שגיאה בטעינת העמודות");
         setLoading(false);
       },
@@ -27,39 +34,37 @@ export function useColumns(boardId?: string) {
     return () => unsubscribe();
   }, [boardId]);
 
-  // 2. הוספת עמודה חדשה
+  // 2. הוספת עמודה חדשה - 100% Type-Safe ללא as any
   const addColumn = useCallback(
-    async (
-      columnData: Partial<Omit<Column, "id" | "createdAt" | "updatedAt">> & {
-        title: string;
-      },
-    ) => {
+    async (columnData: Partial<NewColumnInput> & { title: string }) => {
       try {
         setError(null);
-        const dataToSave = {
-          theme: "blue", // ברירת מחדל
-          createdBy: userId || "guest", // ברירת מחדל אם אין משתמש
+
+        const dataToSave: NewColumnInput = {
+          theme: "blue",
+          createdBy: userId || "guest",
           order: columns.length,
           boardId: boardId || "",
-          ...columnData, // הערכים שהועברו ידרסו את ברירות המחדל במידת הצורך
+          ...columnData,
         };
 
-        return await columnService.addNewColumn(dataToSave as any);
-      } catch (err: any) {
+        return await columnService.addNewColumn(dataToSave);
+      } catch (err: unknown) {
+        const message =
+          err instanceof Error ? err.message : "שגיאה בהוספת העמודה";
         console.error("Failed to add column:", err);
-        setError(err.message || "שגיאה בהוספת העמודה");
+        setError(message);
         throw err;
       }
     },
     [boardId, columns.length, userId],
   );
 
-  // 3. עדכון עמודה קיימת (שם, צבע theme וכד')
+  // 3. עדכון עמודה קיימת
   const updateColumn = useCallback(
     async (id: string, updatedFields: Partial<Column>) => {
       let previousColumns: Column[] = [];
 
-      // עדכון אופטימיסטי ב-UI
       setColumns((prev) => {
         previousColumns = prev;
         return prev.map((col) =>
@@ -70,42 +75,52 @@ export function useColumns(boardId?: string) {
       try {
         setError(null);
         await columnService.editColumn(id, updatedFields);
-      } catch (err: any) {
+      } catch (err: unknown) {
+        const message =
+          err instanceof Error ? err.message : "שגיאה בעדכון העמודה";
         console.error("Failed to update column:", err);
         setColumns(previousColumns); // Rollback
-        setError(err.message || "שגיאה בעדכון העמודה");
+        setError(message);
         throw err;
       }
     },
     [],
   );
 
-  // 4. מחיקת עמודה (עם Optimistic UI)
-  const deleteColumn = useCallback(async (id: string) => {
-    let previousColumns: Column[] = [];
+  // 4. 🟢 מחיקת עמודה - מקבלת רק ID! ה-boardId נלקח ישירות מההוק
+  const deleteColumn = useCallback(
+    async (id: string) => {
+      if (!boardId) {
+        throw new Error("חובה לספק boardId למחיקת עמודה");
+      }
 
-    // עדכון אופטימיסטי ב-UI
-    setColumns((prev) => {
-      previousColumns = prev;
-      return prev.filter((col) => col.id !== id);
-    });
+      let previousColumns: Column[] = [];
 
-    try {
-      setError(null);
-      await columnService.removeColumn(id);
-    } catch (err: any) {
-      console.error("Failed to delete column:", err);
-      setColumns(previousColumns); // Rollback
-      setError(err.message || "שגיאה במחיקת העמודה");
-      throw err;
-    }
-  }, []);
+      // עדכון אופטימיסטי ב-UI
+      setColumns((prev) => {
+        previousColumns = prev;
+        return prev.filter((col) => col.id !== id);
+      });
 
-  // 5. שינוי סדר העמודות (קריטי ל-Drag and Drop של עמודות!)
+      try {
+        setError(null);
+        await columnService.removeColumn(id, boardId);
+      } catch (err: unknown) {
+        const message =
+          err instanceof Error ? err.message : "שגיאה במחיקת העמודה";
+        console.error("Failed to delete column:", err);
+        setColumns(previousColumns); // Rollback במקרה של שגיאה
+        setError(message);
+        throw err;
+      }
+    },
+    [boardId],
+  );
+
+  // 5. שינוי סדר העמודות
   const reorderColumns = useCallback(async (newOrderedColumns: Column[]) => {
     let previousColumns: Column[] = [];
 
-    // עדכון אופטימיסטי מיידי של כל הסדר ב-UI
     setColumns((prev) => {
       previousColumns = prev;
       return newOrderedColumns;
@@ -114,7 +129,6 @@ export function useColumns(boardId?: string) {
     try {
       setError(null);
 
-      // עדכון ה-order של כל עמודה ב-Firebase ברקע
       const updatePromises = newOrderedColumns.map((col, index) => {
         if (col.order !== index) {
           return columnService.editColumn(col.id, { order: index });
@@ -123,10 +137,12 @@ export function useColumns(boardId?: string) {
       });
 
       await Promise.all(updatePromises);
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error ? err.message : "שגיאה בסידור מחדש של העמודות";
       console.error("Failed to reorder columns:", err);
       setColumns(previousColumns); // Rollback
-      setError(err.message || "שגיאה בסידור מחדש של העמודות");
+      setError(message);
       throw err;
     }
   }, []);
@@ -138,6 +154,6 @@ export function useColumns(boardId?: string) {
     addColumn,
     updateColumn,
     deleteColumn,
-    reorderColumns, // פונקציה מיוחדת ושימושית מאוד ל-DND!
+    reorderColumns,
   };
 }

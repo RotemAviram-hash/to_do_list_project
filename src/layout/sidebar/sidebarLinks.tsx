@@ -1,7 +1,6 @@
 import ROUTES from "../../router/routes";
 import {
   Dashboard,
-  Assignment,
   CalendarMonth,
   Settings,
   Info, // אייקון מתאים לאודות
@@ -14,11 +13,7 @@ export const sidebarList = [
     to: ROUTES.WORKSPACE,
     icon: <Dashboard />,
   },
-  {
-    name: "כל המשימות שלי",
-    to: ROUTES.TASK_PAGE || "/boards", // מעודכן לפי ה-TASK_PAGE שראינו בראוטר
-    icon: <Assignment />,
-  },
+
   {
     name: "לוח שנה",
     to: ROUTES.CALENDAR || "/calendar",

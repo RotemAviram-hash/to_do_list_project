@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { memo, useState, useCallback } from "react";
 import {
   Box,
   Typography,
@@ -15,13 +15,8 @@ import DeleteOutlinedIcon from "@mui/icons-material/DeleteOutlined";
 import ColorLensOutlinedIcon from "@mui/icons-material/ColorLensOutlined";
 
 // Types
-import type {
-  Column as ColumnType,
-  ColumnTheme,
-  Column,
-} from "../models/Column";
+import type { ColumnTheme, Column } from "../models/Column";
 
-// מיפוי הערכים של ColumnTheme לצבעים ויזואליים ב-UI
 export const THEME_COLOR_MAP: Record<
   ColumnTheme,
   { main: string; label: string }
@@ -34,8 +29,11 @@ export const THEME_COLOR_MAP: Record<
   gray: { main: "#bdbdbd", label: "אפור" },
 };
 
+// ⚡ אופטימיזציה: מערך המפתחות קבוע מחוץ לרכיב כדי למנוע יצירת array חדש בכל רנדור
+const THEME_KEYS = Object.keys(THEME_COLOR_MAP) as ColumnTheme[];
+
 interface ColumnHeaderProps {
-  column: ColumnType;
+  column: Column;
   taskCount: number;
   onEditColumn: (id: string, updatedFields: Partial<Column>) => Promise<void>;
   onDeleteColumn: (id: string) => void;
@@ -43,196 +41,219 @@ interface ColumnHeaderProps {
   onThemeChange?: (columnId: string, theme: ColumnTheme) => void;
 }
 
-export const ColumnHeader: React.FC<ColumnHeaderProps> = ({
-  column,
-  taskCount,
-  onEditColumn,
-  onDeleteColumn,
-  onAddTask,
-  onThemeChange,
-}) => {
-  const [colorAnchor, setColorAnchor] = useState<HTMLElement | null>(null);
+// ⚡ אופטימיזציה: עטיפה ב-React.memo
+export const ColumnHeader: React.FC<ColumnHeaderProps> = memo(
+  ({
+    column,
+    taskCount,
+    onEditColumn,
+    onDeleteColumn,
+    onAddTask,
+    onThemeChange,
+  }) => {
+    const [colorAnchor, setColorAnchor] = useState<HTMLElement | null>(null);
 
-  const handleOpenColorPicker = (
-    event: React.MouseEvent<HTMLButtonElement>,
-  ) => {
-    setColorAnchor(event.currentTarget);
-  };
+    const handleOpenColorPicker = useCallback(
+      (event: React.MouseEvent<HTMLButtonElement>) => {
+        setColorAnchor(event.currentTarget);
+      },
+      [],
+    );
 
-  const handleCloseColorPicker = () => {
-    setColorAnchor(null);
-  };
+    const handleCloseColorPicker = useCallback(() => {
+      setColorAnchor(null);
+    }, []);
 
-  const handleSelectTheme = (themeKey: ColumnTheme) => {
-    if (onThemeChange) {
-      onThemeChange(column.id, themeKey);
-    } else {
-      // אם לא הועבר handler ייעודי, נשתמש ב-onEditColumn הישיר!
-      onEditColumn(column.id, { theme: themeKey });
-    }
-    handleCloseColorPicker();
-  };
+    const handleSelectTheme = useCallback(
+      (themeKey: ColumnTheme) => {
+        if (onThemeChange) {
+          onThemeChange(column.id, themeKey);
+        } else {
+          onEditColumn(column.id, { theme: themeKey });
+        }
+        handleCloseColorPicker();
+      },
+      [column.id, onThemeChange, onEditColumn, handleCloseColorPicker],
+    );
 
-  // מציאת הצבע הנוכחי לפי הערך במודל
-  const currentThemeColor =
-    THEME_COLOR_MAP[column.theme]?.main || THEME_COLOR_MAP.gray.main;
+    const handleAddTaskClick = useCallback(() => {
+      onAddTask(column.id);
+    }, [column.id, onAddTask]);
 
-  return (
-    <Box
-      sx={{
-        p: 2,
-        pb: 1.5,
-        display: "flex",
-        flexDirection: "column",
-        gap: 1.5,
-        borderBottom: "1px solid",
-        borderColor: "divider",
-      }}
-    >
-      {/* 1. כותרת, אינדיקטור צבע וספירת משימות */}
+    const handleEditTitleClick = useCallback(() => {
+      const newTitle = prompt("הכנס שם עמודה חדש:", column.title);
+      if (newTitle && newTitle.trim() !== column.title) {
+        onEditColumn(column.id, { title: newTitle.trim() });
+      }
+    }, [column.id, column.title, onEditColumn]);
+
+    const handleDeleteClick = useCallback(() => {
+      onDeleteColumn(column.id);
+    }, [column.id, onDeleteColumn]);
+
+    // מציאת הצבע הנוכחי לפי הערך במודל
+    const currentThemeColor =
+      THEME_COLOR_MAP[column.theme]?.main || THEME_COLOR_MAP.gray.main;
+
+    return (
       <Box
         sx={{
+          p: 2,
+          pb: 1.5,
           display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          width: "100%",
+          flexDirection: "column",
+          gap: 1.5,
+          borderBottom: "1px solid",
+          borderColor: "divider",
         }}
       >
+        {/* 1. כותרת, אינדיקטור צבע וספירת משימות */}
         <Box
-          sx={{ display: "flex", alignItems: "center", gap: 1, minWidth: 0 }}
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            width: "100%",
+          }}
         >
-          {/* עיגול אינדיקטור קטן של הנושא הנוכחי */}
           <Box
+            sx={{ display: "flex", alignItems: "center", gap: 1, minWidth: 0 }}
+          >
+            {/* עיגול אינדיקטור קטן של הנושא הנוכחי */}
+            <Box
+              sx={{
+                width: 12,
+                height: 12,
+                borderRadius: "50%",
+                bgcolor: currentThemeColor,
+                flexShrink: 0,
+                boxShadow: "0 0 0 1px rgba(0,0,0,0.1)",
+              }}
+            />
+
+            <Typography
+              variant="subtitle1"
+              sx={{ fontWeight: 700, color: "text.primary" }}
+              noWrap
+            >
+              {column.title}
+            </Typography>
+          </Box>
+
+          <Chip
+            label={taskCount}
+            size="small"
             sx={{
-              width: 12,
-              height: 12,
-              borderRadius: "50%",
-              bgcolor: currentThemeColor,
-              flexShrink: 0,
-              boxShadow: "0 0 0 1px rgba(0,0,0,0.1)",
+              bgcolor: "background.paper",
+              border: "1px solid",
+              borderColor: "divider",
+              fontWeight: 700,
             }}
           />
-
-          <Typography
-            variant="subtitle1"
-            sx={{ fontWeight: 700, color: "text.primary" }}
-            noWrap
-          >
-            {column.title}
-          </Typography>
         </Box>
 
-        <Chip
-          label={taskCount}
-          size="small"
-          sx={{
-            bgcolor: "background.paper",
-            border: "1px solid",
-            borderColor: "divider",
-            fontWeight: 700,
-          }}
-        />
-      </Box>
-
-      {/* 2. סרגל כפתורי פעולה */}
-      <Box
-        sx={{ display: "flex", alignItems: "center", gap: 0.5, width: "100%" }}
-      >
-        <Tooltip title="הוספת משימה">
-          <IconButton
-            size="small"
-            onClick={() => onAddTask(column.id)}
-            sx={{ p: 0.5 }}
-          >
-            <AddIcon fontSize="small" />
-          </IconButton>
-        </Tooltip>
-
-        <Tooltip title="שינוי צבע עמודה">
-          <IconButton
-            size="small"
-            onClick={handleOpenColorPicker}
-            sx={{ p: 0.5 }}
-          >
-            <ColorLensOutlinedIcon fontSize="small" />
-          </IconButton>
-        </Tooltip>
-
-        <Tooltip title="עריכת עמודה">
-          <IconButton
-            size="small"
-            onClick={() => {
-              const newTitle = prompt("הכנס שם עמודה חדש:", column.title);
-              if (newTitle && newTitle.trim() !== column.title) {
-                onEditColumn(column.id, { title: newTitle.trim() });
-              }
-            }}
-            sx={{ p: 0.5 }}
-          >
-            <EditIcon fontSize="small" />
-          </IconButton>
-        </Tooltip>
-
-        <Tooltip title="מחיקת עמודה">
-          <IconButton
-            size="small"
-            onClick={() => onDeleteColumn(column.id)}
-            sx={{ p: 0.5 }}
-          >
-            <DeleteOutlinedIcon fontSize="small" />
-          </IconButton>
-        </Tooltip>
-      </Box>
-
-      {/* 3. תפריט בחירת Theme */}
-      <Popover
-        open={Boolean(colorAnchor)}
-        anchorEl={colorAnchor}
-        onClose={handleCloseColorPicker}
-        anchorOrigin={{
-          vertical: "bottom",
-          horizontal: "right",
-        }}
-        transformOrigin={{
-          vertical: "top",
-          horizontal: "right",
-        }}
-      >
+        {/* 2. סרגל כפתורי פעולה */}
         <Box
           sx={{
-            p: 1.5,
-            display: "grid",
-            gridTemplateColumns: "repeat(3, 1fr)",
-            gap: 1.5,
+            display: "flex",
+            alignItems: "center",
+            gap: 0.5,
+            width: "100%",
           }}
         >
-          {(Object.keys(THEME_COLOR_MAP) as ColumnTheme[]).map((themeKey) => {
-            const themeObj = THEME_COLOR_MAP[themeKey];
-            const isSelected = column.theme === themeKey;
+          <Tooltip title="הוספת משימה">
+            <IconButton
+              size="small"
+              onClick={handleAddTaskClick}
+              sx={{ p: 0.5 }}
+            >
+              <AddIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
 
-            return (
-              <Tooltip key={themeKey} title={themeObj.label}>
-                <Box
-                  onClick={() => handleSelectTheme(themeKey)}
-                  sx={{
-                    width: 28,
-                    height: 28,
-                    borderRadius: "50%",
-                    bgcolor: themeObj.main,
-                    cursor: "pointer",
-                    border: isSelected ? "3px solid #000" : "2px solid #fff",
-                    boxShadow: "0 0 0 1px rgba(0,0,0,0.15)",
-                    transition: "transform 0.15s ease",
-                    "&:hover": {
-                      transform: "scale(1.15)",
-                    },
-                  }}
-                />
-              </Tooltip>
-            );
-          })}
+          <Tooltip title="שינוי צבע עמודה">
+            <IconButton
+              size="small"
+              onClick={handleOpenColorPicker}
+              sx={{ p: 0.5 }}
+            >
+              <ColorLensOutlinedIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+
+          <Tooltip title="עריכת עמודה">
+            <IconButton
+              size="small"
+              onClick={handleEditTitleClick}
+              sx={{ p: 0.5 }}
+            >
+              <EditIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+
+          <Tooltip title="מחיקת עמודה">
+            <IconButton
+              size="small"
+              onClick={handleDeleteClick}
+              sx={{ p: 0.5 }}
+            >
+              <DeleteOutlinedIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
         </Box>
-      </Popover>
-    </Box>
-  );
-};
+
+        {/* 3. תפריט בחירת Theme */}
+        <Popover
+          open={Boolean(colorAnchor)}
+          anchorEl={colorAnchor}
+          onClose={handleCloseColorPicker}
+          anchorOrigin={{
+            vertical: "bottom",
+            horizontal: "right",
+          }}
+          transformOrigin={{
+            vertical: "top",
+            horizontal: "right",
+          }}
+        >
+          <Box
+            sx={{
+              p: 1.5,
+              display: "grid",
+              gridTemplateColumns: "repeat(3, 1fr)",
+              gap: 1.5,
+            }}
+          >
+            {THEME_KEYS.map((themeKey) => {
+              const themeObj = THEME_COLOR_MAP[themeKey];
+              const isSelected = column.theme === themeKey;
+
+              return (
+                <Tooltip key={themeKey} title={themeObj.label}>
+                  <Box
+                    onClick={() => handleSelectTheme(themeKey)}
+                    sx={{
+                      width: 28,
+                      height: 28,
+                      borderRadius: "50%",
+                      bgcolor: themeObj.main,
+                      cursor: "pointer",
+                      border: isSelected ? "3px solid #000" : "2px solid #fff",
+                      boxShadow: "0 0 0 1px rgba(0,0,0,0.15)",
+                      transition: "transform 0.15s ease",
+                      "&:hover": {
+                        transform: "scale(1.15)",
+                      },
+                    }}
+                  />
+                </Tooltip>
+              );
+            })}
+          </Box>
+        </Popover>
+      </Box>
+    );
+  },
+);
+
+ColumnHeader.displayName = "ColumnHeader";

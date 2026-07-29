@@ -5,21 +5,24 @@ import { ProjectThemeProvider } from "./providers/ProjectThemeProvider";
 import { SnackProvider } from "./providers/SnackProvider";
 
 import CssBaseline from "@mui/material/CssBaseline";
-import { UserProvider } from "./features/user/providers/UserProvider";
+import { UserProvider } from "./features/User/providers/UserProvider";
+import { UsersProvider } from "./features/User/providers/UsersProvider";
 
 function App() {
   return (
     <>
       <BrowserRouter>
         <UserProvider>
-          <ProjectThemeProvider>
-            <CssBaseline />
-            <SnackProvider>
-              <Layout>
-                <Router />
-              </Layout>
-            </SnackProvider>
-          </ProjectThemeProvider>
+          <UsersProvider>
+            <ProjectThemeProvider>
+              <CssBaseline />
+              <SnackProvider>
+                <Layout>
+                  <Router />
+                </Layout>
+              </SnackProvider>
+            </ProjectThemeProvider>
+          </UsersProvider>
         </UserProvider>
       </BrowserRouter>
     </>

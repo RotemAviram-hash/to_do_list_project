@@ -7,17 +7,16 @@ import {
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import AddTaskIcon from "@mui/icons-material/AddTask";
-import type { Column } from "../../Column";
+import type { Column } from "../../Column/models/Column";
 import type { Task } from "../models/Task";
 import { TaskForm } from "./TaskForm";
-import type { User } from "../../user";
 import { useTasks } from "../hooks/useTasks";
+import { useUsers } from "../../User/hooks/useUsers";
 
 interface CreateTaskDialogProps {
   open: boolean;
   onClose: () => void;
   columns: Column[];
-  users?: User[];
   boardId?: string;
   defaultColumnId?: string;
 }
@@ -28,17 +27,19 @@ export function CreateTaskDialog({
   open,
   onClose,
   columns,
-  users,
   boardId,
   defaultColumnId,
 }: CreateTaskDialogProps) {
+  const { users } = useUsers(); //
   const { addTask } = useTasks();
 
+  // 🟢 1. מציאת העמודה הנבחרת ע"י המרה בטוחה ל-String
   const selectedColumn =
-    columns.find((c) => c.id === defaultColumnId) || columns[0];
+    columns.find((c) => String(c.id) === String(defaultColumnId)) || columns[0];
 
   const effectiveBoardId = boardId || selectedColumn?.boardId || "";
 
+  // 🟢 2. ערכי ברירת המחדל עם ה-columnId שנמצא
   const defaultValues: Task = {
     id: "",
     title: "",
@@ -123,7 +124,8 @@ export function CreateTaskDialog({
       </DialogTitle>
 
       <TaskForm
-        key={open ? `open-${defaultColumnId || "default"}` : "closed"} // 👈 המפתח שמבטיח ריענון בפתיחה ושומר על המידע באנימציית הסגירה
+        // 🟢 key מורכב שמבטיח איפוס מחדש של הטופס בכל שינוי של defaultColumnId
+        key={open ? `open-${selectedColumn?.id || "default"}` : "closed"}
         initialValues={defaultValues}
         columns={columns}
         onSubmit={handleSubmit}

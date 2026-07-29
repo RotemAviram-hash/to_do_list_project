@@ -1,101 +1,98 @@
-import {
+import React, {
   createContext,
   useState,
-  useContext,
+  useEffect,
   useCallback,
   type ReactNode,
-  useEffect,
 } from "react";
+import type { UserProfile } from "../models/User";
+import { authService } from "../services/authService";
+import { userRepository } from "../repositories/userRepository";
 
-import {
-  getAuth,
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-  signOut,
-  onAuthStateChanged,
-} from "firebase/auth";
-import type { User } from "../models/User";
-import { addUser, getUserById } from "../services/usersDataServiceFireBase";
-import app from "../../../config/firebase";
+export interface UserContextType {
+  user: UserProfile | null;
+  loading: boolean;
+  signup: (
+    email: string,
+    pass: string,
+    extraData: Omit<UserProfile, "id" | "email">,
+  ) => Promise<void>;
+  login: (email: string, pass: string) => Promise<void>;
+  logout: () => Promise<void>;
+  updateProfile: (data: Partial<UserProfile>) => Promise<void>;
+}
 
-const UserContext = createContext<
-  | {
-      user: User | null;
-      signup: (userData: any) => Promise<void>;
-      login: (email: string, password: string) => Promise<void>;
-      logout: () => Promise<void>;
-    }
-  | undefined
->(undefined);
+export const UserContext = createContext<UserContextType | undefined>(
+  undefined,
+);
 
-function UserProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const auth = getAuth(app);
+export const UserProvider: React.FC<{ children: ReactNode }> = ({
+  children,
+}) => {
+  const [user, setUser] = useState<UserProfile | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+
   const signup = useCallback(
-    async ({
-      email,
-      password,
-      ...userData
-    }: {
-      email: string;
-      password: string;
-      userData: any;
-    }) => {
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
-        email,
-        password,
-      );
-      // Add additional user data to Firestore
-      await addUser({
-        id: userCredential.user.uid,
-        email: userCredential.user.email || "",
-        ...userData,
-      } as any);
+    async (
+      email: string,
+      pass: string,
+      extraData: Omit<UserProfile, "id" | "email">,
+    ) => {
+      await authService.register(email, pass, extraData);
     },
-    [auth],
+    [],
   );
-  const login = useCallback(
-    async (email: string, password: string) => {
-      await signInWithEmailAndPassword(auth, email, password);
-    },
-    [auth],
-  );
+
+  const login = useCallback(async (email: string, pass: string) => {
+    await authService.login(email, pass);
+  }, []);
+
   const logout = useCallback(async () => {
-    await signOut(auth);
-  }, [auth]);
+    await authService.logout();
+    setUser(null);
+  }, []);
+
+  // 🟢 כותב ל-Firestore בלבד – המאזין דואג לעדכן את ה-UI בלייב!
+  const updateProfile = useCallback(
+    async (data: Partial<UserProfile>) => {
+      console.log("1. updateProfile נקראה עם הנתונים:", data);
+
+      if (!user) {
+        console.error("❌ שגיאה: user ב-Store הוא null!");
+        return;
+      }
+
+      try {
+        const updatedFields: Partial<UserProfile> = {
+          ...data,
+          updatedAt: new Date().toISOString(),
+        };
+
+        console.log("2. שולח עדכון ל-Firestore עבור UID:", user.id);
+        await userRepository.update(user.id, updatedFields);
+        console.log("3. ✅ העדכון נשלח בהצלחה ל-Firestore!");
+      } catch (error) {
+        console.error("❌ שגיאה בשליחה ל-Firestore:", error);
+      }
+    },
+    [user],
+  );
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      if (currentUser) {
-        const userData = await getUserById(currentUser.uid);
-        if (userData) {
-          setUser(userData);
-        } else {
-          setUser(currentUser as any);
-        }
-      } else {
-        setUser(null);
-      }
+    // 🎧 הירשמות למאזין הראשי בלייב
+    const unsubscribe = authService.subscribeToAuthChanges((userProfile) => {
+      setUser(userProfile);
+      setLoading(false);
     });
 
-    return unsubscribe;
+    return () => unsubscribe();
   }, []);
-  console.log(user);
 
   return (
-    <UserContext.Provider value={{ user, signup, login, logout }}>
+    <UserContext.Provider
+      value={{ user, loading, signup, login, logout, updateProfile }}
+    >
       {children}
     </UserContext.Provider>
   );
-}
-
-const useUser = () => {
-  const context = useContext(UserContext);
-  if (context === undefined) {
-    throw new Error("useUser must be used within a UserProvider");
-  }
-  return context;
 };
-
-export { UserProvider, useUser };

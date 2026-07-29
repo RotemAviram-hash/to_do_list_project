@@ -12,69 +12,68 @@ interface BoardHeaderProps {
   onManageAccess?: () => void;
 }
 
-export const BoardHeader: React.FC<BoardHeaderProps> = ({
-  onAddColumn,
-  isPublic,
-  onTogglePrivacy,
-  members,
-  onManageAccess,
-}) => {
-  const theme = useTheme();
-  const isDark = theme.palette.mode === "dark";
+// ⚡ אופטימיזציה: עטיפה ב-React.memo
+export const BoardHeader: React.FC<BoardHeaderProps> = React.memo(
+  ({ onAddColumn, isPublic, onTogglePrivacy, members, onManageAccess }) => {
+    const theme = useTheme();
+    const isDark = theme.palette.mode === "dark";
 
-  return (
-    <Box
-      sx={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        pb: 1.5,
-        borderBottom: "1px solid",
-        borderColor: "divider",
-        flexWrap: "wrap",
-        gap: 1.5,
-      }}
-    >
-      {/* כפתור הוספת עמודה */}
-      <Button
-        size="small"
-        onClick={onAddColumn}
-        startIcon={<AddRoundedIcon sx={{ fontSize: 18 }} />}
+    return (
+      <Box
         sx={{
-          borderRadius: "8px",
-          px: 2,
-          py: 0.6,
-          fontSize: "0.825rem",
-          fontWeight: 600,
-          textTransform: "none",
-          bgcolor: isDark
-            ? alpha(theme.palette.primary.main, 0.15)
-            : alpha(theme.palette.primary.main, 0.08),
-          color: "primary.main",
-          border: "1px solid",
-          borderColor: alpha(theme.palette.primary.main, 0.2),
-          transition: "all 0.2s",
-          "&:hover": {
-            bgcolor: isDark
-              ? alpha(theme.palette.primary.main, 0.25)
-              : alpha(theme.palette.primary.main, 0.15),
-            borderColor: "primary.main",
-          },
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          pb: 1.5,
+          borderBottom: "1px solid",
+          borderColor: "divider",
+          flexWrap: "wrap",
+          gap: 1.5,
         }}
       >
-        עמודה חדשה
-      </Button>
+        {/* כפתור הוספת עמודה */}
+        <Button
+          size="small"
+          onClick={onAddColumn}
+          startIcon={<AddRoundedIcon sx={{ fontSize: 18 }} />}
+          sx={{
+            borderRadius: "8px",
+            px: 2,
+            py: 0.6,
+            fontSize: "0.825rem",
+            fontWeight: 600,
+            textTransform: "none",
+            bgcolor: isDark
+              ? alpha(theme.palette.primary.main, 0.15)
+              : alpha(theme.palette.primary.main, 0.08),
+            color: "primary.main",
+            border: "1px solid",
+            borderColor: alpha(theme.palette.primary.main, 0.2),
+            transition: "all 0.2s",
+            "&:hover": {
+              bgcolor: isDark
+                ? alpha(theme.palette.primary.main, 0.25)
+                : alpha(theme.palette.primary.main, 0.15),
+              borderColor: "primary.main",
+            },
+          }}
+        >
+          עמודה חדשה
+        </Button>
 
-      {/* אזור פרטיות וניהול משתמשים */}
-      <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-        {isPublic && (
-          <BoardMembersAccess
-            members={members}
-            onManageAccess={onManageAccess}
-          />
-        )}
-        <BoardPrivacyToggle isPublic={isPublic} onToggle={onTogglePrivacy} />
+        {/* אזור פרטיות וניהול משתמשים */}
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+          {isPublic && (
+            <BoardMembersAccess
+              members={members}
+              onManageAccess={onManageAccess}
+            />
+          )}
+          <BoardPrivacyToggle isPublic={isPublic} onToggle={onTogglePrivacy} />
+        </Box>
       </Box>
-    </Box>
-  );
-};
+    );
+  },
+);
+
+BoardHeader.displayName = "BoardHeader";

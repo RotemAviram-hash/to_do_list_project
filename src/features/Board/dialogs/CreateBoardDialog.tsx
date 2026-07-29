@@ -31,6 +31,7 @@ export function CreateBoardDialog({
     isPublic: false,
     createdAt: new Date().toISOString(),
     createdBy: currentUserId,
+    columnCount: 0,
   };
 
   // 1. טיפול אסינכרוני תקין בשליחה

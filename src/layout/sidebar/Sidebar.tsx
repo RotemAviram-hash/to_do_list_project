@@ -18,7 +18,7 @@ function Sidebar() {
 
   return (
     <>
-      {/* הידית המלבנית שלך */}
+      {/* הידית המלבנית */}
       <Box
         onClick={() => setIsOpen(true)}
         sx={{
@@ -64,14 +64,17 @@ function Sidebar() {
         }}
       >
         <Box
+          dir="rtl"
           sx={{
             height: "100%",
             display: "flex",
             flexDirection: "column",
             p: 2.5,
+            textAlign: "right",
           }}
           role="presentation"
         >
+          {/* כותרת הסיידבר */}
           <Typography
             variant="subtitle2"
             sx={{
@@ -82,6 +85,7 @@ function Sidebar() {
               textTransform: "uppercase",
               letterSpacing: "1px",
               fontSize: "0.75rem",
+              textAlign: "center",
             }}
           >
             TaskFlow
@@ -108,17 +112,22 @@ function Sidebar() {
                     "&:hover": {
                       bgcolor: "action.hover",
                       color: "text.primary",
-                      transform: "translateX(4px)",
+                      transform: "translateX(-4px)",
                     },
                   }}
                 >
                   <ListItemIcon sx={{ minWidth: 36, color: "inherit" }}>
                     {item.icon}
                   </ListItemIcon>
+
                   <ListItemText
                     primary={
                       <Typography
-                        sx={{ fontSize: "0.95rem", fontWeight: "600" }}
+                        sx={{
+                          fontSize: "0.95rem",
+                          fontWeight: "600",
+                          textAlign: "right",
+                        }}
                       >
                         {item.name}
                       </Typography>

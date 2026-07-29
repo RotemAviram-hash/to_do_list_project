@@ -1,3 +1,5 @@
+import { useContext } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   AppBar,
   Toolbar,
@@ -5,19 +7,19 @@ import {
   Button,
   Box,
   IconButton,
+  Tooltip,
 } from "@mui/material";
-import MenuIcon from "@mui/icons-material/Menu";
+import Brightness4Icon from "@mui/icons-material/Brightness4";
+import Brightness7Icon from "@mui/icons-material/Brightness7";
+
 import NavItem from "../../router/NavItem";
 import ROUTES from "../../router/routes";
-import { useNavigate } from "react-router-dom";
 import {
   ProjectThemeContext,
   type ThemeContextType,
 } from "../../providers/ProjectThemeProvider";
-import { Brightness4, Brightness7 } from "@mui/icons-material";
-import { useContext } from "react";
-import { useUser } from "../../features/user/providers/UserProvider";
-import { UserAvatar } from "../../features/user";
+import { useUser } from "../../features/User/hooks/useUser";
+import { HeaderAvatar } from "../../features/User/components/HeaderAvatar";
 
 function Header() {
   const navigate = useNavigate();
@@ -29,136 +31,137 @@ function Header() {
 
   return (
     <AppBar
-      position="sticky" // עדיף מ-static כדי שילווה את הגלילה באלגנטיות
+      position="static" /* <<< זה השינוי המרכזי: הופך אותו לאלמנט רגיל בשרשרת הדף */
       elevation={0}
       sx={{
         bgcolor: "background.paper",
-        backdropFilter: "blur(8px)", // אפקט זכוכית מודרני וחצי שקוף
         borderBottom: "1px solid",
         borderColor: "divider",
         color: "text.primary",
-        top: 0,
-        //zIndex: (theme) => theme.zIndex.drawer + 1,
       }}
     >
       <Toolbar
         sx={{
           justifyContent: "space-between",
-          px: { xs: 2, md: 4 }, // ריווח פנימי מעט רחב יותר בצדדים
+          px: { xs: 2, md: 4 },
           minHeight: "64px",
         }}
       >
-        {/* כפתור תפריט למובייל */}
-        <IconButton
-          size="large"
-          edge="start"
-          color="inherit"
-          aria-label="menu"
-          sx={{ mr: 2, display: { xs: "block", md: "none" } }}
-        >
-          <MenuIcon />
-        </IconButton>
+        {/* אזור 1: כפתור תצוגה + משתמש / התחברות */}
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+          {/* כפתור החלפת מצב יום/לילה */}
+          <Tooltip title={isDark ? "מצב יום" : "מצב לילה"}>
+            <IconButton
+              onClick={toggleMode}
+              aria-label="החלף מצב תצוגה"
+              sx={{
+                color: "text.secondary",
+                transition: "color 0.2s ease-in-out",
+                "&:hover": { color: "primary.main" },
+              }}
+            >
+              {isDark ? (
+                <Brightness7Icon fontSize="small" />
+              ) : (
+                <Brightness4Icon fontSize="small" />
+              )}
+            </IconButton>
+          </Tooltip>
 
-        {/* לוגו האפליקציה */}
-        <Typography
-          variant="h6"
-          component="div"
-          onClick={() => navigate(ROUTES.HOME)}
-          sx={{
-            fontWeight: "800",
-            letterSpacing: "0.5px",
-            fontSize: "1.25rem",
-            background: isDark
-              ? "linear-gradient(45deg, #90caf9 30%, #f48fb1 90%)"
-              : "linear-gradient(45deg, #1976d2 30%, #9c27b0 90%)",
-            WebkitBackgroundClip: "text",
-            WebkitTextFillColor: "transparent",
-            cursor: "pointer",
-            userSelect: "none",
-          }}
-        >
-          TaskFlow
-        </Typography>
+          {/* מחובר: אווטר + התנתקות | אורח: התחברות + הרשמה */}
+          {user ? (
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+              <HeaderAvatar />
 
-        {/* אזור הניווט והמשתמש */}
-        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-          {/* לינקים של הניווט - עטופים ב-Box שמנהל את הטיפוגרפיה והמרווחים בצורה נקייה */}
-          <Box
-            sx={{
-              display: { xs: "none", md: "flex" },
-              alignItems: "center",
-              gap: 1,
-            }}
-          >
-            <NavItem to={ROUTES.HOME} label="Home" />
-            <NavItem to={ROUTES.ABOUT} label="About" />
-            <NavItem to={ROUTES.CONTACT} label="Contact" />
-          </Box>
-
-          {/* כפתורי פעולה מותאמי סטטוס משתמש */}
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            {user ? (
               <Button
                 onClick={() => logout()}
                 variant="text"
                 sx={{
                   fontWeight: "600",
                   color: "text.secondary",
-                  borderRadius: "8px",
+                  borderRadius: 2,
                   px: 2,
-                  "&:hover": { color: "error.main", bgcolor: "error.lighter" },
+                  "&:hover": {
+                    color: "error.main",
+                    bgcolor: isDark
+                      ? "rgba(244, 67, 54, 0.12)"
+                      : "rgba(211, 47, 47, 0.08)",
+                  },
                 }}
               >
-                Log Out
+                התנתקות
               </Button>
-            ) : (
-              <>
-                <Button
-                  onClick={() => navigate(ROUTES.LOGIN)}
-                  variant="text"
-                  sx={{
-                    fontWeight: "600",
-                    color: "text.primary",
-                    borderRadius: "8px",
-                    px: 2,
-                  }}
-                >
-                  Log In
-                </Button>
+            </Box>
+          ) : (
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              <Button
+                onClick={() => navigate(ROUTES.LOGIN)}
+                variant="text"
+                sx={{
+                  fontWeight: "600",
+                  color: "text.primary",
+                  borderRadius: 2,
+                  px: 2,
+                }}
+              >
+                התחברות
+              </Button>
 
-                <Button
-                  onClick={() => navigate(ROUTES.REGISTER)}
-                  variant="contained"
-                  disableElevation
-                  sx={{
-                    fontWeight: "600",
-                    borderRadius: "8px",
-                    px: 2,
-                    textTransform: "none",
-                  }}
-                >
-                  Register
-                </Button>
-              </>
-            )}
-
-            {/* כפתור החלפת ערכת נושא */}
-            <IconButton
-              onClick={toggleMode}
-              sx={{
-                color: "text.secondary",
-                "&:hover": { color: "primary.main" },
-              }}
-            >
-              {isDark ? (
-                <Brightness7 fontSize="small" />
-              ) : (
-                <Brightness4 fontSize="small" />
-              )}
-            </IconButton>
-          </Box>
+              <Button
+                onClick={() => navigate(ROUTES.REGISTER)}
+                variant="contained"
+                disableElevation
+                sx={{
+                  fontWeight: "600",
+                  borderRadius: 2,
+                  px: 2,
+                  textTransform: "none",
+                }}
+              >
+                הרשמה
+              </Button>
+            </Box>
+          )}
         </Box>
-        <UserAvatar />
+
+        {/* אזור 2 (מרכז): קישורי ניווט - מופיעים רק כשאורח */}
+        {!user && (
+          <Box
+            component="nav"
+            sx={{
+              display: { xs: "none", md: "flex" },
+              alignItems: "center",
+              gap: 2,
+            }}
+          >
+            <NavItem to={ROUTES.HOME} label="דף הבית" />
+            <NavItem to={ROUTES.ABOUT} label="אודות" />
+            <NavItem to={ROUTES.CONTACT} label="צור קשר" />
+          </Box>
+        )}
+
+        {/* אזור 3: לוגו */}
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+          <Typography
+            variant="h6"
+            component="div"
+            onClick={() => navigate(ROUTES.HOME)}
+            sx={{
+              fontWeight: "800",
+              letterSpacing: "0.5px",
+              fontSize: "1.25rem",
+              background: isDark
+                ? "linear-gradient(45deg, #90caf9 30%, #f48fb1 90%)"
+                : "linear-gradient(45deg, #1976d2 30%, #9c27b0 90%)",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              cursor: "pointer",
+              userSelect: "none",
+            }}
+          >
+            TaskFlow
+          </Typography>
+        </Box>
       </Toolbar>
     </AppBar>
   );

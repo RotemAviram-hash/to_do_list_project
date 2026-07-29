@@ -7,18 +7,17 @@ import {
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import EditNoteIcon from "@mui/icons-material/EditNote";
-import type { Column } from "../../Column";
+import type { Column } from "../../Column/models/Column";
 import type { Task } from "../models/Task";
 import { TaskForm } from "./TaskForm";
-import type { User } from "../../user/models/User";
 import { useTasks } from "../hooks/useTasks";
+import { useUsers } from "../../User/hooks/useUsers";
 
 interface EditTaskDialogProps {
   open: boolean;
   onClose: () => void;
   task: Task;
   columns: Column[];
-  users?: User[];
 }
 
 export function EditTaskDialog({
@@ -26,10 +25,9 @@ export function EditTaskDialog({
   onClose,
   task,
   columns,
-  users,
 }: EditTaskDialogProps) {
   const { updateTask } = useTasks();
-
+  const { users } = useUsers();
   return (
     <Dialog
       open={open}

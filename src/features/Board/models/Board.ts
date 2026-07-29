@@ -10,4 +10,6 @@ export interface Board {
 
   createdAt: string;
   updatedAt?: string;
+
+  columnCount: number;
 }

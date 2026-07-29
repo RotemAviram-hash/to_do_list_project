@@ -1,5 +1,4 @@
 import {
-  getFirestore,
   collection,
   doc,
   addDoc,
@@ -12,11 +11,11 @@ import {
   type Unsubscribe,
   QuerySnapshot,
   type DocumentData,
+  increment,
 } from "firebase/firestore";
-import app from "../../../config/firebase";
+import { db } from "../../../config/firebase";
 import type { Board } from "../models/Board";
 
-const db = getFirestore(app);
 const BOARDS_COLLECTION = "boards";
 const boardsCollectionRef = collection(db, BOARDS_COLLECTION);
 
@@ -120,6 +119,24 @@ export const deleteBoardRepo = async (id: string): Promise<void> => {
     await deleteDoc(boardDocRef);
   } catch (error) {
     console.error(`Error deleting board ${id}:`, error);
+    throw error;
+  }
+};
+
+/**
+ * 6. 🟢 עדכון אטומי של ספירת העמודות בלוח (+1 או -1)
+ */
+export const incrementColumnCountRepo = async (
+  boardId: string,
+  delta: number,
+): Promise<void> => {
+  try {
+    const boardDocRef = doc(db, BOARDS_COLLECTION, boardId);
+    await updateDoc(boardDocRef, {
+      columnCount: increment(delta),
+    });
+  } catch (error) {
+    console.error(`Error updating column count for board ${boardId}:`, error);
     throw error;
   }
 };

@@ -1,5 +1,4 @@
 import {
-  getFirestore,
   collection,
   doc,
   addDoc,
@@ -11,10 +10,9 @@ import {
   QuerySnapshot,
   type DocumentData,
 } from "firebase/firestore";
-import app from "../../../config/firebase";
+import { db } from "../../../config/firebase";
 import type { Task } from "../models/Task";
 
-const db = getFirestore(app);
 const TASKS_COLLECTION = "tasks";
 const tasksCollectionRef = collection(db, TASKS_COLLECTION);
 

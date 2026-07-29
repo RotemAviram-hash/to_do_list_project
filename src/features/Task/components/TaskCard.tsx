@@ -8,12 +8,11 @@ import {
   Divider,
   Tooltip,
   IconButton,
-  Avatar,
   Button,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 
-// האייקונים מהעיצוב החדש + עריכה
+// אייקונים
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import DeleteOutlinedIcon from "@mui/icons-material/DeleteOutlined";
 import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
@@ -21,14 +20,16 @@ import BookmarkIcon from "@mui/icons-material/Bookmark";
 import BookmarkBorderIcon from "@mui/icons-material/BookmarkBorder";
 import AssignmentIndIcon from "@mui/icons-material/AssignmentInd";
 
-// Imports של המערכת שלך
+// הקונטקסטים וההוקים של המערכת
 import {
   ProjectThemeContext,
   type ThemeContextType,
 } from "../../../providers/ProjectThemeProvider";
 import ROUTES from "../../../router/routes";
-import { useUser } from "../../user";
-import type { Column } from "../../Column";
+import { useUser } from "../../User/hooks/useUser";
+import { useUsers } from "../../User/hooks/useUsers";
+import { UserAvatar } from "../../User/components/UserAvatar";
+import type { Column } from "../../Column/models/Column";
 import type { Task } from "../models/Task";
 import { EditTaskDialog } from "../dialogs/EditTaskDialog";
 import { useTasks } from "../hooks/useTasks";
@@ -38,29 +39,32 @@ interface TaskCardProps {
   columns: Column[];
   borderColor?: string;
   isDragging?: boolean;
-  cardRef?: (node: HTMLElement | null) => void; // מקבל את ה-ref מה-Draggable
+  cardRef?: (node: HTMLElement | null) => void;
 }
 
 function TaskCard({
   task,
   columns,
-  borderColor = "#1976d2", // צבע ברירת מחדל אם לא מועבר צבע עמודה
+  borderColor = "#199ed2",
   isDragging = false,
   cardRef,
 }: TaskCardProps) {
   const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
 
-  // הוקים ו-Contexts קיימים במערכת
   const { isDark } = useContext(ProjectThemeContext) as ThemeContextType;
   const { user } = useUser();
+  // 🟢 שימוש ב-usersMap מתוך הקונטקסט
+  const { getUserName, usersMap } = useUsers();
   const { updateTask, deleteTask } = useTasks();
 
-  // בדיקת שמירה לפי המשתמש המחובר כעת
   const currentUserId = user?.id || "";
   const isSavedByMe = task.savedBy?.includes(currentUserId) || false;
 
-  // פונקציית Toggle לשמירת משימה
+  // ⚡ שליפת שם המשתמש ואובייקט המשתמש המלא מתוך usersMap
+  const assigneeName = getUserName(task.assigneeId);
+  const assigneeUser = task.assigneeId ? usersMap[task.assigneeId] : null;
+
   const handleToggleSave = async (e: React.MouseEvent) => {
     e.stopPropagation();
     if (!currentUserId) return;
@@ -75,7 +79,7 @@ function TaskCard({
 
   return (
     <Card
-      ref={cardRef} // 👈 פה מולבשת הגרירה על כל הכרטיס!
+      ref={cardRef}
       sx={{
         borderRadius: 3,
         borderColor: "divider",
@@ -85,8 +89,10 @@ function TaskCard({
         userSelect: "none",
         width: "100%",
         boxSizing: "border-box",
-        cursor: isDragging ? "grabbing" : "grab", // 👈 אינדיקציה ויזואלית לעכבר תופס/גורר
+        cursor: isDragging ? "grabbing" : "grab",
         opacity: isDragging ? 0.6 : 1,
+        flexShrink: 0,
+        height: "auto",
         transition: isDragging
           ? "none"
           : "transform 0.2s, box-shadow 0.2s, border-color 0.2s",
@@ -113,7 +119,7 @@ function TaskCard({
         }}
       />
 
-      {/* כפתורי פעולה עליונים (עריכה ומחיקה) מופיעים למשתמש מחובר */}
+      {/* כפתורי פעולה עליונים (עריכה ומחיקה) */}
       {user && (
         <Box
           sx={{
@@ -128,7 +134,7 @@ function TaskCard({
           <Tooltip title="עריכת משימה">
             <IconButton
               size="small"
-              onPointerDown={(e) => e.stopPropagation()} // מונע מאירוע הגרירה להתחיל בלחיצה על כפתור
+              onPointerDown={(e) => e.stopPropagation()}
               onClick={(e) => {
                 e.stopPropagation();
                 setIsOpen(true);
@@ -150,7 +156,7 @@ function TaskCard({
           <Tooltip title="מחיקת משימה">
             <IconButton
               size="small"
-              onPointerDown={(e) => e.stopPropagation()} // מונע מאירוע הגרירה להתחיל בלחיצה על כפתור
+              onPointerDown={(e) => e.stopPropagation()}
               onClick={(e) => {
                 e.stopPropagation();
                 deleteTask(task.id);
@@ -171,7 +177,6 @@ function TaskCard({
         </Box>
       )}
 
-      {/* component="div" פותר לחלוטין את שגיאת ה-button בתוך button! */}
       <CardActionArea
         component="div"
         onClick={() => navigate(ROUTES.TASK_PAGE + task.id)}
@@ -186,7 +191,7 @@ function TaskCard({
               color: "text.primary",
               mb: 1,
               lineHeight: 1.4,
-              pl: user ? 7 : 0, // מרווח למניעת חפיפה עם כפתורי הפעולה
+              pl: user ? 7 : 0,
             }}
           >
             {task.title}
@@ -214,7 +219,7 @@ function TaskCard({
 
           <Divider sx={{ my: 1.5 }} />
 
-          {/* חלק תחתון: תאריך, שמירות/לייקים ואחראי */}
+          {/* חלק תחתון */}
           <Box
             sx={{
               display: "flex",
@@ -230,7 +235,6 @@ function TaskCard({
                 color: "text.secondary",
               }}
             >
-              {/* תאריך יעד */}
               {task.dueDate && (
                 <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
                   <CalendarTodayIcon sx={{ fontSize: 13 }} />
@@ -240,12 +244,11 @@ function TaskCard({
                 </Box>
               )}
 
-              {/* כפתור שמירה / לייק */}
               <Tooltip
                 title={isSavedByMe ? "הסר משימה מהשמורות שלי" : "שמור משימה"}
               >
                 <Button
-                  onPointerDown={(e) => e.stopPropagation()} // מונע התחלת גרירה בזמן שמירה
+                  onPointerDown={(e) => e.stopPropagation()}
                   onClick={handleToggleSave}
                   size="small"
                   startIcon={
@@ -274,21 +277,19 @@ function TaskCard({
               </Tooltip>
             </Box>
 
-            {/* תמונת פרופיל / אווטאר של ה-Assignee */}
+            {/* הצגת המשתמש האחראי בעזרת קומפוננטת UserAvatar */}
             {task.assigneeId ? (
-              <Tooltip title={`אחראי: ${task.assigneeId}`}>
-                <Avatar
-                  sx={{
-                    width: 26,
-                    height: 26,
-                    fontSize: "0.75rem",
-                    fontWeight: 700,
-                    bgcolor: borderColor,
-                    color: isDark ? "#0A1128" : "#2D3748",
-                  }}
-                >
-                  {task.assigneeId.charAt(0).toUpperCase()}
-                </Avatar>
+              <Tooltip title={`אחראי: ${assigneeName}`}>
+                <Box component="span" sx={{ display: "inline-flex" }}>
+                  <UserAvatar
+                    user={
+                      assigneeUser || {
+                        displayName: assigneeName,
+                      }
+                    }
+                    size={28}
+                  />
+                </Box>
               </Tooltip>
             ) : (
               <Tooltip title="אין אחראי כרגע">
@@ -301,7 +302,6 @@ function TaskCard({
         </CardContent>
       </CardActionArea>
 
-      {/* דיאלוג עריכה */}
       {isOpen && (
         <EditTaskDialog
           open={isOpen}
@@ -314,4 +314,11 @@ function TaskCard({
   );
 }
 
-export default memo(TaskCard);
+export default memo(TaskCard, (prevProps, nextProps) => {
+  return (
+    prevProps.isDragging === nextProps.isDragging &&
+    prevProps.borderColor === nextProps.borderColor &&
+    prevProps.task === nextProps.task &&
+    prevProps.columns === nextProps.columns
+  );
+});

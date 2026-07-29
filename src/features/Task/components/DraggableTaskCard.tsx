@@ -2,7 +2,7 @@ import { useDraggable } from "@dnd-kit/react";
 import { memo } from "react";
 
 import TaskCard from "./TaskCard";
-import type { Column } from "../../Column";
+import type { Column } from "../../Column/models/Column";
 import type { Task } from "../models/Task";
 
 interface DraggableTaskCardProps {
