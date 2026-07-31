@@ -93,7 +93,11 @@ export const BoardOptionsMenu: React.FC<BoardOptionsMenuProps> = React.memo(
 
             <ListItemText
               primary="עריכת לוח"
-              primaryTypographyProps={{ fontSize: "0.85rem", fontWeight: 500 }}
+              slotProps={{
+                primary: {
+                  sx: { fontSize: "0.85rem", fontWeight: 500 },
+                },
+              }}
             />
           </MenuItem>
 
@@ -113,7 +117,11 @@ export const BoardOptionsMenu: React.FC<BoardOptionsMenuProps> = React.memo(
             </ListItemIcon>
             <ListItemText
               primary="מחיקת לוח"
-              primaryTypographyProps={{ fontSize: "0.85rem", fontWeight: 500 }}
+              slotProps={{
+                primary: {
+                  sx: { fontSize: "0.85rem", fontWeight: 500 },
+                },
+              }}
             />
           </MenuItem>
         </Menu>

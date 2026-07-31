@@ -10,7 +10,6 @@ import {
 } from "@mui/material";
 
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
-import SettingsOutlinedIcon from "@mui/icons-material/SettingsOutlined";
 import LogoutOutlinedIcon from "@mui/icons-material/LogoutOutlined";
 
 import { EditProfileDialog } from "../dialogs/EditProfileDialog";
@@ -36,7 +35,7 @@ export function UserMenu({
   open,
   onClose,
   user,
-  onOpenSettings,
+
   onLogout,
   onUpdateProfile,
 }: UserMenuProps) {
@@ -49,11 +48,6 @@ export function UserMenu({
   const handleOpenEdit = () => {
     setIsEditOpen(true);
     onClose();
-  };
-
-  const handleSettingsClick = () => {
-    onClose();
-    onOpenSettings?.();
   };
 
   const handleLogoutClick = () => {
@@ -120,13 +114,6 @@ export function UserMenu({
             <EditOutlinedIcon fontSize="small" />
           </ListItemIcon>
           <ListItemText primary="עריכת שם ותמונה" />
-        </MenuItem>
-
-        <MenuItem onClick={handleSettingsClick} sx={{ py: 1 }}>
-          <ListItemIcon>
-            <SettingsOutlinedIcon fontSize="small" />
-          </ListItemIcon>
-          <ListItemText primary="הגדרות משתמש" />
         </MenuItem>
 
         {onLogout && (

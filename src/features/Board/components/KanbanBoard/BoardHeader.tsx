@@ -1,19 +1,13 @@
 import React from "react";
 import { Box, Button, alpha, useTheme } from "@mui/material";
 import AddRoundedIcon from "@mui/icons-material/AddRounded";
-import { BoardMembersAccess, type BoardMember } from "./BoardMembersAccess";
-import { BoardPrivacyToggle } from "./BoardPrivacyToggle";
 
 interface BoardHeaderProps {
   onAddColumn: () => void;
-  isPublic: boolean;
-  onTogglePrivacy: () => void;
-  members: BoardMember[];
-  onManageAccess?: () => void;
 }
 
 export const BoardHeader: React.FC<BoardHeaderProps> = React.memo(
-  ({ onAddColumn, isPublic, onTogglePrivacy, members, onManageAccess }) => {
+  ({ onAddColumn }) => {
     const theme = useTheme();
     const isDark = theme.palette.mode === "dark";
 
@@ -67,17 +61,6 @@ export const BoardHeader: React.FC<BoardHeaderProps> = React.memo(
         >
           עמודה חדשה
         </Button>
-
-        {/* אזור פרטיות וניהול משתמשים */}
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-          {isPublic && (
-            <BoardMembersAccess
-              members={members}
-              onManageAccess={onManageAccess}
-            />
-          )}
-          <BoardPrivacyToggle isPublic={isPublic} onToggle={onTogglePrivacy} />
-        </Box>
       </Box>
     );
   },

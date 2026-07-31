@@ -19,7 +19,7 @@ import { EditColumnDialog } from "../../../Column/dialogs/EditColumnDialog";
 import Column from "../../../Column/components/Column";
 
 // 📅 ייבוא לוח השנה
-import { CalendarView } from "../../../../pages/CalendarView";
+import { CalendarView } from "../../../Calendar/components/CalendarView";
 
 // הוקים וטיפוסים
 import { useColumns } from "../../../Column/hooks/useColumns";
@@ -32,34 +32,18 @@ import {
 
 import type { Column as ColumnType } from "../../../Column/models/Column";
 import type { Task } from "../../../Task/models/Task";
-import { BoardMembersAccess, type BoardMember } from "./BoardMembersAccess";
-import { BoardPrivacyToggle } from "./BoardPrivacyToggle";
-
-const EMPTY_MEMBERS: BoardMember[] = [];
 
 // ==========================================
 // 1. BoardHeader Component
 // ==========================================
 interface BoardHeaderProps {
   onAddColumn: () => void;
-  isPublic: boolean;
-  onTogglePrivacy: () => void;
-  members: BoardMember[];
-  onManageAccess?: () => void;
   viewMode: "kanban" | "calendar";
   onViewModeChange: (mode: "kanban" | "calendar") => void;
 }
 
 export const BoardHeader: React.FC<BoardHeaderProps> = React.memo(
-  ({
-    onAddColumn,
-    isPublic,
-    onTogglePrivacy,
-    members,
-    onManageAccess,
-    viewMode,
-    onViewModeChange,
-  }) => {
+  ({ onAddColumn, viewMode, onViewModeChange }) => {
     const theme = useTheme();
     const isDark = theme.palette.mode === "dark";
 
@@ -151,29 +135,6 @@ export const BoardHeader: React.FC<BoardHeaderProps> = React.memo(
               שנה
             </ToggleButton>
           </ToggleButtonGroup>
-        </Box>
-
-        {/* אזור פרטיות וניהול משתמשים */}
-        <Box
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            gap: 1.2,
-            bgcolor: theme.palette.action.hover,
-            p: 0.5,
-            px: 1.2,
-            borderRadius: "12px",
-            border: "1px solid",
-            borderColor: theme.palette.divider,
-          }}
-        >
-          {isPublic && (
-            <BoardMembersAccess
-              members={members}
-              onManageAccess={onManageAccess}
-            />
-          )}
-          <BoardPrivacyToggle isPublic={isPublic} onToggle={onTogglePrivacy} />
         </Box>
       </Box>
     );
@@ -319,8 +280,6 @@ BoardColumnsList.displayName = "BoardColumnsList";
 // ==========================================
 interface KanbanBoardContainerProps {
   boardId: string;
-  isPublic: boolean;
-  onTogglePrivacy: () => void;
   userId?: string;
   filters?: FilterOptions;
   searchQuery?: string;
@@ -332,8 +291,6 @@ export const KanbanBoardContainer: React.FC<KanbanBoardContainerProps> =
   React.memo(
     ({
       boardId,
-      isPublic,
-      onTogglePrivacy,
       userId = "",
       filters,
       searchQuery = "",
@@ -341,9 +298,7 @@ export const KanbanBoardContainer: React.FC<KanbanBoardContainerProps> =
       showOnlyMine = false,
     }) => {
       // 0. State להחלת התצוגה (Kanban או Calendar)
-      const [viewMode, setViewMode] = useState<"kanban" | "calendar">(
-        "calendar",
-      );
+      const [viewMode, setViewMode] = useState<"kanban" | "calendar">("kanban");
 
       // 1. ניהול עמודות ומשימות
       const { columns, reorderColumns } = useColumns(boardId);
@@ -411,9 +366,6 @@ export const KanbanBoardContainer: React.FC<KanbanBoardContainerProps> =
           {/* Header כולל Toggle לעבור בין קנבן ללוח שנה */}
           <BoardHeader
             onAddColumn={handleOpenCreateColumn}
-            isPublic={isPublic}
-            onTogglePrivacy={onTogglePrivacy}
-            members={EMPTY_MEMBERS}
             viewMode={viewMode}
             onViewModeChange={setViewMode}
           />

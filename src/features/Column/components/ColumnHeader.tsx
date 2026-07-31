@@ -14,8 +14,9 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteOutlinedIcon from "@mui/icons-material/DeleteOutlined";
 import ColorLensOutlinedIcon from "@mui/icons-material/ColorLensOutlined";
 
-// Types
+// Types & Dialog
 import type { ColumnTheme, Column } from "../models/Column";
+import { EditColumnDialog } from "../dialogs/EditColumnDialog"; // 👈 ייבוא הדיאלוג
 
 export const THEME_COLOR_MAP: Record<
   ColumnTheme,
@@ -34,14 +35,14 @@ export const THEME_COLOR_MAP: Record<
   teal: { main: "#14b8a6", label: "טיאל" },
 };
 
-// ⚡ אופטימיזציה: מערך המפתחות קבוע מחוץ לרכיב
 const THEME_KEYS = Object.keys(THEME_COLOR_MAP) as ColumnTheme[];
 
 interface ColumnHeaderProps {
   column: Column;
   taskCount: number;
+  boardId: string; // 👈 נידרש עבור הדיאלוג
   onEditColumn: (id: string, updatedFields: Partial<Column>) => Promise<void>;
-  onDeleteColumn: (id: string) => void;
+  onDeleteColumn: (id: string, hasTasks?: boolean) => Promise<void>;
   onAddTask: (columnId: string) => void;
   onThemeChange?: (columnId: string, theme: ColumnTheme) => void;
 }
@@ -50,12 +51,23 @@ export const ColumnHeader: React.FC<ColumnHeaderProps> = memo(
   ({
     column,
     taskCount,
+    boardId,
     onEditColumn,
     onDeleteColumn,
     onAddTask,
     onThemeChange,
   }) => {
     const [colorAnchor, setColorAnchor] = useState<HTMLElement | null>(null);
+    const [isEditDialogOpen, setIsEditDialogOpen] = useState(false); // 👈 State לניהול פתיחת הדיאלוג
+
+    // פתיחה וסגירה של דיאלוג העריכה
+    const handleOpenEditDialog = useCallback(() => {
+      setIsEditDialogOpen(true);
+    }, []);
+
+    const handleCloseEditDialog = useCallback(() => {
+      setIsEditDialogOpen(false);
+    }, []);
 
     const handleOpenColorPicker = useCallback(
       (event: React.MouseEvent<HTMLButtonElement>) => {
@@ -84,18 +96,20 @@ export const ColumnHeader: React.FC<ColumnHeaderProps> = memo(
       onAddTask(column.id);
     }, [column.id, onAddTask]);
 
-    const handleEditTitleClick = useCallback(() => {
-      const newTitle = prompt("הכנס שם עמודה חדש:", column.title);
-      if (newTitle && newTitle.trim() !== column.title) {
-        onEditColumn(column.id, { title: newTitle.trim() });
-      }
-    }, [column.id, column.title, onEditColumn]);
-
     const handleDeleteClick = useCallback(() => {
-      onDeleteColumn(column.id);
-    }, [column.id, onDeleteColumn]);
+      const hasTasks = taskCount > 0;
 
-    // מציאת הצבע הנוכחי לפי הערך במודל
+      // 1. אם יש משימות - שולחים ישר להוק שיראה Snack Error (בלי confirm מציק)
+      if (hasTasks) {
+        onDeleteColumn(column.id, true);
+        return;
+      }
+
+      // 2. רק אם העמודה ריקה - שואלים את המשתמש
+      if (window.confirm(`האם למחוק את העמודה "${column.title || ""}"?`)) {
+        onDeleteColumn(column.id, false);
+      }
+    }, [column.id, column.title, onDeleteColumn, taskCount]); // 👈 taskCount מעודכן במערך
     const currentThemeColor =
       THEME_COLOR_MAP[column.theme]?.main || THEME_COLOR_MAP.gray.main;
 
@@ -129,7 +143,6 @@ export const ColumnHeader: React.FC<ColumnHeaderProps> = memo(
               minWidth: 0,
             }}
           >
-            {/* אינדיקטור צבע מעוצב לעמודה */}
             <Box
               sx={{
                 width: 10,
@@ -173,7 +186,7 @@ export const ColumnHeader: React.FC<ColumnHeaderProps> = memo(
           />
         </Box>
 
-        {/* 2. סרגל כפתורי פעולה מודרני */}
+        {/* 2. סרגל כפתורי פעולה */}
         <Box
           sx={{
             display: "flex",
@@ -227,10 +240,11 @@ export const ColumnHeader: React.FC<ColumnHeaderProps> = memo(
             </IconButton>
           </Tooltip>
 
+          {/* 👈 כפתור העריכה כעת פותח את הדיאלוג */}
           <Tooltip title="עריכת עמודה">
             <IconButton
               size="small"
-              onClick={handleEditTitleClick}
+              onClick={handleOpenEditDialog}
               sx={{
                 p: 1,
                 borderRadius: "8px",
@@ -270,28 +284,24 @@ export const ColumnHeader: React.FC<ColumnHeaderProps> = memo(
           </Tooltip>
         </Box>
 
-        {/* 3. תפריט בחירת Theme מעוצב כרשימת תווית + צבע */}
+        {/* 3. תפריט צבעים (Popover) */}
         <Popover
           open={Boolean(colorAnchor)}
           anchorEl={colorAnchor}
           onClose={handleCloseColorPicker}
-          anchorOrigin={{
-            vertical: "bottom",
-            horizontal: "right",
-          }}
-          transformOrigin={{
-            vertical: "top",
-            horizontal: "right",
-          }}
-          PaperProps={{
-            sx: {
-              p: 1.5,
-              borderRadius: "16px",
-              boxShadow:
-                "0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)",
-              border: "1px solid",
-              borderColor: "divider",
-              width: 240,
+          anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+          transformOrigin={{ vertical: "top", horizontal: "right" }}
+          slotProps={{
+            paper: {
+              sx: {
+                p: 1.5,
+                borderRadius: "16px",
+                boxShadow:
+                  "0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)",
+                border: "1px solid",
+                borderColor: "divider",
+                width: 240,
+              },
             },
           }}
         >
@@ -384,6 +394,14 @@ export const ColumnHeader: React.FC<ColumnHeaderProps> = memo(
             })}
           </Box>
         </Popover>
+
+        {/* 4. דיאלוג עריכת עמודה 👈 */}
+        <EditColumnDialog
+          open={isEditDialogOpen}
+          onClose={handleCloseEditDialog}
+          column={column}
+          boardId={boardId}
+        />
       </Box>
     );
   },

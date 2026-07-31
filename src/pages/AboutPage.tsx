@@ -4,13 +4,12 @@ import {
   Typography,
   Box,
   Paper,
-  Grid,
   Button,
   Chip,
-  Stack,
-  alpha,
   useTheme,
+  Grid,
 } from "@mui/material";
+import { alpha } from "@mui/material/styles";
 import TaskAltIcon from "@mui/icons-material/TaskAlt";
 import FlashOnIcon from "@mui/icons-material/FlashOn";
 import SpeedIcon from "@mui/icons-material/Speed";
@@ -22,52 +21,51 @@ import BlockIcon from "@mui/icons-material/Block";
 import PersonAddOutlinedIcon from "@mui/icons-material/PersonAddOutlined";
 import LoginIcon from "@mui/icons-material/Login";
 import { useNavigate } from "react-router-dom";
-import ROUTES from "../router/routes"; // ודא שהנתיב ל-ROUTES נכון אצלך
+import ROUTES from "../router/routes";
 
-interface AboutPageProps {
-  onNavigateToRegister?: () => void;
-  onNavigateToLogin?: () => void;
-}
-
-const AboutPage: React.FC<AboutPageProps> = ({
-  onNavigateToRegister,
-  onNavigateToLogin,
-}) => {
+const AboutPage: React.FC = () => {
   const theme = useTheme();
   const isDark = theme.palette.mode === "dark";
   const navigate = useNavigate();
-  // פיצ'רים מרכזיים
+
+  const handleRegister = () => {
+    navigate(ROUTES.REGISTER);
+  };
+
+  const handleLogin = () => {
+    navigate(ROUTES.LOGIN);
+  };
+
   const features = [
     {
       title: "ניהול חכם",
       description: "מעקב דינמי ואוטומטי אחר כל המשימות שלכם בלוח Kanban מתקדם.",
-      icon: <LayersIcon sx={{ color: "#1976d2" }} />,
-      bgColor: alpha("#1976d2", 0.1),
+      icon: <LayersIcon color="primary" />,
+      bgColor: alpha(theme.palette.primary.main, 0.12),
     },
     {
       title: "סדרי עדיפויות",
       description:
         "הגדרת דחיפות, תיוג חכם ולוחות זמנים ברורים כדי שלא תפספסו דבר.",
-      icon: <FlashOnIcon sx={{ color: "#ed6c02" }} />,
-      bgColor: alpha("#ed6c02", 0.1),
+      icon: <FlashOnIcon color="warning" />,
+      bgColor: alpha(theme.palette.warning.main, 0.12),
     },
     {
       title: "חוויית משתמש (UX)",
       description:
         "ממשק פשוט, נקי, מודרני ואינטואיטיבי המותאם לעבודה מהירה וחלקה.",
-      icon: <AutoAwesomeIcon sx={{ color: "#9c27b0" }} />,
-      bgColor: alpha("#9c27b0", 0.1),
+      icon: <AutoAwesomeIcon color="secondary" />,
+      bgColor: alpha(theme.palette.secondary.main, 0.12),
     },
     {
       title: "מקסימום פרודוקטיביות",
       description:
         "סנכרון מלא של הנתונים המאפשר לכם להישאר ממוקדים במה שחשוב באמת.",
-      icon: <SpeedIcon sx={{ color: "#2e7d32" }} />,
-      bgColor: alpha("#2e7d32", 0.1),
+      icon: <SpeedIcon color="success" />,
+      bgColor: alpha(theme.palette.success.main, 0.12),
     },
   ];
 
-  // ערכי יסוד אמיתיים
   const coreValues = [
     {
       title: "פרטיות מלאה",
@@ -86,7 +84,6 @@ const AboutPage: React.FC<AboutPageProps> = ({
     },
   ];
 
-  // צעדי העבודה האמיתיים במערכת
   const quickSteps = [
     {
       num: "01",
@@ -126,8 +123,8 @@ const AboutPage: React.FC<AboutPageProps> = ({
           width: { xs: "300px", sm: "500px", md: "600px" },
           height: { xs: "200px", sm: "350px", md: "400px" },
           background: isDark
-            ? "radial-gradient(circle, rgba(144,202,249,0.12) 0%, rgba(0,0,0,0) 70%)"
-            : "radial-gradient(circle, rgba(25,118,210,0.08) 0%, rgba(255,255,255,0) 70%)",
+            ? `radial-gradient(circle, ${alpha(theme.palette.primary.light, 0.15)} 0%, rgba(0,0,0,0) 70%)`
+            : `radial-gradient(circle, ${alpha(theme.palette.primary.main, 0.08)} 0%, rgba(255,255,255,0) 70%)`,
           filter: "blur(60px)",
           pointerEvents: "none",
           zIndex: 0,
@@ -152,9 +149,7 @@ const AboutPage: React.FC<AboutPageProps> = ({
           }}
         >
           <Chip
-            icon={
-              <TaskAltIcon sx={{ fontSize: "1.1rem !important", ml: 0.5 }} />
-            }
+            icon={<TaskAltIcon sx={{ fontSize: "1.1rem !important" }} />}
             label="מערכת ניהול משימות אישית"
             color="primary"
             variant="outlined"
@@ -178,8 +173,8 @@ const AboutPage: React.FC<AboutPageProps> = ({
               lineHeight: 1.25,
               mb: 2.5,
               background: isDark
-                ? "linear-gradient(135deg, #ffffff 30%, #90caf9 90%)"
-                : "linear-gradient(135deg, #1a202c 30%, #1976d2 90%)",
+                ? `linear-gradient(135deg, #ffffff 30%, ${theme.palette.primary.light} 90%)`
+                : `linear-gradient(135deg, ${theme.palette.text.primary} 30%, ${theme.palette.primary.main} 90%)`,
               WebkitBackgroundClip: "text",
               WebkitTextFillColor: "transparent",
             }}
@@ -205,7 +200,7 @@ const AboutPage: React.FC<AboutPageProps> = ({
           </Typography>
         </Box>
 
-        {/* סרגל ערכים אמיתיים */}
+        {/* סרגל ערכים */}
         <Grid
           container
           spacing={{ xs: 2.5, md: 3 }}
@@ -245,16 +240,20 @@ const AboutPage: React.FC<AboutPageProps> = ({
                 <Box>
                   <Typography
                     variant="subtitle1"
-                    fontWeight="700"
-                    color="text.primary"
-                    sx={{ mb: 0.25 }}
+                    sx={{
+                      fontWeight: 700,
+                      color: "text.primary",
+                      mb: 0.25,
+                    }}
                   >
                     {item.title}
                   </Typography>
                   <Typography
                     variant="body2"
-                    color="text.secondary"
-                    sx={{ lineHeight: 1.4 }}
+                    sx={{
+                      color: "text.secondary",
+                      lineHeight: 1.4,
+                    }}
                   >
                     {item.subtitle}
                   </Typography>
@@ -356,15 +355,17 @@ const AboutPage: React.FC<AboutPageProps> = ({
             p: { xs: 3.5, sm: 5, md: 6 },
             mb: { xs: 6, sm: 8, md: 9 },
             borderRadius: "24px",
-            bgcolor: isDark ? alpha("#ffffff", 0.02) : "#f8fafc",
+            bgcolor: isDark
+              ? alpha("#ffffff", 0.02)
+              : alpha(theme.palette.primary.main, 0.02),
             border: "1px solid",
             borderColor: "divider",
           }}
         >
           <Typography
             variant="h5"
-            fontWeight="800"
             sx={{
+              fontWeight: 800,
               textAlign: "center",
               mb: { xs: 3, md: 5 },
               color: "text.primary",
@@ -384,8 +385,8 @@ const AboutPage: React.FC<AboutPageProps> = ({
                 >
                   <Typography
                     variant="h3"
-                    fontWeight="900"
                     sx={{
+                      fontWeight: 900,
                       color: alpha(theme.palette.primary.main, 0.25),
                       mb: -1,
                       fontFamily: "monospace",
@@ -395,15 +396,20 @@ const AboutPage: React.FC<AboutPageProps> = ({
                   </Typography>
                   <Typography
                     variant="h6"
-                    fontWeight="700"
-                    sx={{ mb: 1, color: "text.primary" }}
+                    sx={{
+                      fontWeight: 700,
+                      mb: 1,
+                      color: "text.primary",
+                    }}
                   >
                     {step.title}
                   </Typography>
                   <Typography
                     variant="body2"
-                    color="text.secondary"
-                    sx={{ lineHeight: 1.6 }}
+                    sx={{
+                      color: "text.secondary",
+                      lineHeight: 1.6,
+                    }}
                   >
                     {step.desc}
                   </Typography>
@@ -413,84 +419,162 @@ const AboutPage: React.FC<AboutPageProps> = ({
           </Grid>
         </Paper>
 
-        {/* הנעה לפעולה (CTA) – הרשמה / התחברות */}
+        {/* הנעה לפעולה (CTA) */}
         <Paper
           elevation={0}
           sx={{
-            p: { xs: 4, sm: 5, md: 6 },
-            borderRadius: "24px",
-            background: isDark
-              ? "linear-gradient(135deg, rgba(25,118,210,0.25) 0%, rgba(156,39,176,0.18) 100%)"
-              : "linear-gradient(135deg, #1976d2 0%, #7b1fa2 100%)",
-            color: "#ffffff",
-            textAlign: "center",
             position: "relative",
             overflow: "hidden",
-            boxShadow: "0 16px 40px rgba(0,0,0,0.12)",
+            py: { xs: 6, sm: 8 }, // מרווח אנכי נדיב למעלה ולמטה
+            px: { xs: 3, sm: 6 },
+            borderRadius: "28px",
+            background: isDark
+              ? `linear-gradient(135deg, ${alpha(theme.palette.primary.main, 0.12)} 0%, ${alpha(theme.palette.secondary.main, 0.08)} 100%)`
+              : `linear-gradient(135deg, ${alpha("#6366f1", 0.06)} 0%, ${alpha("#a855f7", 0.05)} 100%)`,
+            border: "1px solid",
+            borderColor: isDark
+              ? alpha(theme.palette.primary.main, 0.25)
+              : alpha("#6366f1", 0.15),
+            textAlign: "center",
           }}
         >
+          {/* הילת עננים עדינה ברקע */}
           <Box
             sx={{
-              maxWidth: "650px",
-              mx: "auto",
+              position: "absolute",
+              top: "-40%",
+              right: "-10%",
+              width: "300px",
+              height: "300px",
+              borderRadius: "50%",
+              background: `radial-gradient(circle, ${alpha("#8b5cf6", 0.08)} 0%, rgba(255,255,255,0) 70%)`,
+              pointerEvents: "none",
+            }}
+          />
+
+          {/* קונטיינר Flex ראשי – gap כופה מרווח מדויק בין כל שורה ושורה */}
+          <Box
+            sx={{
               position: "relative",
               zIndex: 1,
+              maxWidth: "640px",
+              mx: "auto",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: { xs: 2.5, sm: 3.5 }, // הרווח האנכי המדוייק בין האלמנטים!
             }}
           >
-            <Typography
-              variant="h4"
-              fontWeight="800"
+            {/* 1. תגית עליונה */}
+            <Chip
+              icon={
+                <AutoAwesomeIcon
+                  sx={{ fontSize: "1rem !important", color: "#7c3aed" }}
+                />
+              }
+              label="הצעד הבא שלכם לפרודוקטיביות"
+              variant="outlined"
               sx={{
-                mb: 2,
-                fontSize: { xs: "1.5rem", sm: "1.75rem", md: "2rem" },
+                fontWeight: 600,
+                borderRadius: "50px",
+                px: 1.5,
+                py: 0.6,
+                borderColor: alpha("#7c3aed", 0.3),
+                bgcolor: alpha("#7c3aed", 0.1),
+                color: isDark ? theme.palette.primary.light : "#6d28d9",
+              }}
+            />
+
+            {/* 2. כותרת מרכזית */}
+            <Typography
+              variant="h3"
+              component="h2"
+              sx={{
+                fontWeight: 800,
+                color: "text.primary",
+                fontSize: { xs: "1.75rem", sm: "2.2rem", md: "2.5rem" },
+                lineHeight: 1.3,
+                m: 0, // איפוס Margin ישן כדי למנוע התנגשויות
               }}
             >
               מוכנים לקחת שליטה על הזמן שלכם?
             </Typography>
+
+            {/* 3. תת-כותרת */}
             <Typography
               variant="body1"
               sx={{
-                opacity: 0.9,
-                lineHeight: 1.7,
-                mb: { xs: 3, sm: 4 },
+                color: "text.secondary",
+                lineHeight: 1.75,
                 fontSize: { xs: "0.95rem", md: "1.05rem" },
-                px: { xs: 1, sm: 0 },
+                maxWidth: "540px",
+                m: 0,
               }}
             >
-              הירשמו עכשיו כדי להתחיל לארגן את הלוחות והמשימות שלכם במקום אחד.
+              הירשמו עכשיו כדי להתחיל לארגן את הלוחות והמשימות שלכם במקום אחד
+              בצורה חכמה, מהירה ומהנה.
             </Typography>
 
-            <Stack
-              direction={{ xs: "column", sm: "row-reverse" }}
-              spacing={2}
+            {/* 4. אזור כפתורים עם Flex & Gap אופקי ואנכי */}
+            <Box
               sx={{
+                display: "flex",
+                flexDirection: { xs: "column", sm: "row" },
+                gap: 2.5, // מרווח נפרד וברור בין שני הכפתורים
                 justifyContent: "center",
                 alignItems: "center",
-                pt: 1,
+                width: "100%",
+                pt: 1, // דחיפה קלה נוספת כלפי מטה מרכיב הטקסט
               }}
             >
               <Button
                 variant="contained"
                 size="large"
-                onClick={() => navigate(ROUTES.REGISTER)}
-                startIcon={<PersonAddOutlinedIcon sx={{ ml: 1, mr: -0.5 }} />}
+                onClick={handleRegister}
+                startIcon={<PersonAddOutlinedIcon />}
                 sx={{
-                  bgcolor: "#ffffff",
-                  color: "#1976d2",
                   fontWeight: 700,
-                  px: 4,
-                  py: 1.3,
+                  px: 4.5,
+                  py: 1.4,
                   borderRadius: "12px",
+                  fontSize: "0.98rem",
                   width: { xs: "100%", sm: "auto" },
-                  boxShadow: "0 4px 14px rgba(0,0,0,0.15)",
+                  bgcolor: "#6366f1",
+                  boxShadow: `0 6px 20px ${alpha("#6366f1", 0.3)}`,
                   "&:hover": {
-                    bgcolor: alpha("#ffffff", 0.92),
+                    bgcolor: "#4f46e5",
+                    boxShadow: `0 8px 25px ${alpha("#6366f1", 0.4)}`,
                   },
                 }}
               >
-                להרשמה
+                להרשמה בחינם
               </Button>
-            </Stack>
+
+              <Button
+                variant="outlined"
+                size="large"
+                onClick={handleLogin}
+                startIcon={<LoginIcon />}
+                sx={{
+                  fontWeight: 700,
+                  px: 4.5,
+                  py: 1.4,
+                  borderRadius: "12px",
+                  fontSize: "0.98rem",
+                  width: { xs: "100%", sm: "auto" },
+                  borderColor: alpha("#6366f1", 0.35),
+                  color: isDark ? "#ffffff" : "#4f46e5",
+                  bgcolor: alpha("#ffffff", 0.05),
+                  backdropFilter: "blur(4px)",
+                  "&:hover": {
+                    borderColor: "#6366f1",
+                    bgcolor: alpha("#6366f1", 0.12),
+                  },
+                }}
+              >
+                התחברות למערכת
+              </Button>
+            </Box>
           </Box>
         </Paper>
       </Container>

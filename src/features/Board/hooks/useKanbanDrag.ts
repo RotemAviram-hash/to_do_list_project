@@ -1,6 +1,7 @@
-import { useCallback } from "react";
+import { useCallback, useRef, useEffect } from "react";
 import type { Column } from "../../Column/models/Column";
 import type { Task } from "../../Task/models/Task";
+import { useSnack } from "../../../providers/SnackProvider";
 
 interface UseKanbanDragProps {
   columns: Column[];
@@ -15,10 +16,24 @@ export function useKanbanDrag({
   moveTaskToColumn,
   reorderColumns,
 }: UseKanbanDragProps) {
+  const { showError } = useSnack();
+
+  // ⚡ אופטימיזציית עומק: שמירת ערכים מעודכנים ב-Ref
+  // זה שומר על הפונקציה handleDragEnd יציבה לחלוטין בזיכרון (Zero Re-creations)
+  const columnsRef = useRef(columns);
+  const tasksRef = useRef(tasks);
+
+  useEffect(() => {
+    columnsRef.current = columns;
+    tasksRef.current = tasks;
+  }, [columns, tasks]);
+
   const handleDragEnd = useCallback(
     async (event: any) => {
-      // 1. ביטול גרירה
       if (event.canceled) return;
+
+      const currentColumns = columnsRef.current;
+      const currentTasks = tasksRef.current;
 
       const sourceId = event.operation.source?.id
         ? String(event.operation.source.id)
@@ -29,48 +44,57 @@ export function useKanbanDrag({
 
       if (!sourceId || !targetId || sourceId === targetId) return;
 
-      const columnIdsSet = new Set(columns.map((c) => String(c.id)));
+      // ⚡ O(1) Lookup עבור בדיקת עמודות
+      const columnIdsSet = new Set(currentColumns.map((c) => String(c.id)));
 
-      // ----------------------------------------------------
-      // תרחיש א': גרירת עמודה (Column Reordering)
-      // ----------------------------------------------------
-      if (columnIdsSet.has(sourceId) && columnIdsSet.has(targetId)) {
-        const oldIndex = columns.findIndex((c) => String(c.id) === sourceId);
-        const newIndex = columns.findIndex((c) => String(c.id) === targetId);
+      try {
+        // ----------------------------------------------------
+        // תרחיש א': גרירת עמודה (Column Reordering)
+        // ----------------------------------------------------
+        if (columnIdsSet.has(sourceId) && columnIdsSet.has(targetId)) {
+          const oldIndex = currentColumns.findIndex(
+            (c) => String(c.id) === sourceId,
+          );
+          const newIndex = currentColumns.findIndex(
+            (c) => String(c.id) === targetId,
+          );
 
-        if (oldIndex !== -1 && newIndex !== -1) {
-          const updatedColumns = [...columns];
-          const [movedColumn] = updatedColumns.splice(oldIndex, 1);
-          updatedColumns.splice(newIndex, 0, movedColumn);
+          if (oldIndex !== -1 && newIndex !== -1) {
+            const updatedColumns = [...currentColumns];
+            const [movedColumn] = updatedColumns.splice(oldIndex, 1);
+            updatedColumns.splice(newIndex, 0, movedColumn);
 
-          await reorderColumns(updatedColumns);
+            await reorderColumns(updatedColumns);
+          }
+          return;
         }
-        return;
-      }
 
-      // ----------------------------------------------------
-      // תרחיש ב': גרירת משימה (Task Movement)
-      // ----------------------------------------------------
-      let targetColumnId: string | undefined;
+        // ----------------------------------------------------
+        // תרחיש ב': גרירת משימה (Task Movement)
+        // ----------------------------------------------------
+        let targetColumnId: string | undefined;
 
-      // 1. השמטה ישירות על שטח העמודה
-      if (columnIdsSet.has(targetId)) {
-        targetColumnId = targetId;
-      } else {
-        // 2. השמטה מעל משימה אחרת בתוך עמודה
-        const targetTask = tasks.find((t) => String(t.id) === targetId);
-        targetColumnId = targetTask?.columnId;
-      }
+        if (columnIdsSet.has(targetId)) {
+          targetColumnId = targetId;
+        } else {
+          const targetTask = currentTasks.find(
+            (t) => String(t.id) === targetId,
+          );
+          targetColumnId = targetTask?.columnId;
+        }
 
-      if (!targetColumnId) return;
+        if (!targetColumnId) return;
 
-      // בדיקה אם המשימה אכן שינתה עמודה
-      const currentTask = tasks.find((t) => String(t.id) === sourceId);
-      if (currentTask && String(currentTask.columnId) !== targetColumnId) {
-        await moveTaskToColumn(sourceId, targetColumnId);
+        const currentTask = currentTasks.find((t) => String(t.id) === sourceId);
+        if (currentTask && String(currentTask.columnId) !== targetColumnId) {
+          await moveTaskToColumn(sourceId, targetColumnId);
+        }
+      } catch (err: any) {
+        console.error("❌ Drag operation failed:", err);
+        showError(err.message || "שגיאה בעדכון מיקום הנגרר");
       }
     },
-    [columns, tasks, moveTaskToColumn, reorderColumns],
+    [moveTaskToColumn, reorderColumns, showError], // ⚡ תלויות יציבות בלבד! לא נבנית מחדש לעולם בעת שינוי משימה
   );
 
   return {

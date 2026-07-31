@@ -122,6 +122,16 @@ function ProjectThemeProvider({ children }: { children: ReactNode }) {
           }),
         },
       },
+      // 👈 הדריסה החדשה שמבטלת את הכפייה של צבע הכחול על טאב נבחר
+      MuiTab: {
+        styleOverrides: {
+          root: {
+            "&.Mui-selected": {
+              color: "#F1F3F5",
+            },
+          },
+        },
+      },
     },
   });
 

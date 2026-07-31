@@ -63,7 +63,7 @@ export const BoardColumnsList: React.FC<BoardColumnsListProps> = React.memo(
           >
             <ViewColumnRoundedIcon sx={{ fontSize: 38 }} />
           </Box>
-          <Typography variant="h6" fontWeight={700} gutterBottom>
+          <Typography variant="h6" sx={{ fontWeight: 700 }} gutterBottom>
             אין עמודות בלוח זה עדיין
           </Typography>
           <Typography
@@ -147,8 +147,6 @@ export const BoardColumnsList: React.FC<BoardColumnsListProps> = React.memo(
               columns={columns}
             />
           </Box>
-
-          
         ))}
       </Box>
     );

@@ -157,6 +157,7 @@ function Column({ tasks, columns, column, onOpenAddTaskModal }: ColumnProps) {
       >
         <ColumnHeader
           column={column}
+          boardId={column.boardId}
           taskCount={tasks.length}
           onEditColumn={updateColumn}
           onDeleteColumn={deleteColumn}

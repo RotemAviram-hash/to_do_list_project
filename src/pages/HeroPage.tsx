@@ -13,9 +13,6 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import CalendarMonthRoundedIcon from "@mui/icons-material/CalendarMonthRounded";
 import LayersRoundedIcon from "@mui/icons-material/LayersRounded";
 import WorkspacePremiumRoundedIcon from "@mui/icons-material/WorkspacePremiumRounded";
-import PlayArrowRoundedIcon from "@mui/icons-material/PlayArrowRounded";
-import CheckRoundedIcon from "@mui/icons-material/CheckRounded";
-
 import { Link as RouterLink } from "react-router-dom";
 import ROUTES from "../router/routes";
 
@@ -24,10 +21,7 @@ interface TaskMasterHeroProps {
   onLogin?: () => void;
 }
 
-const TaskMasterHero: React.FC<TaskMasterHeroProps> = ({
-  onGetStarted,
-  onLogin,
-}) => {
+const TaskMasterHero: React.FC<TaskMasterHeroProps> = ({ onGetStarted }) => {
   const theme = useTheme();
   const isDark = theme.palette.mode === "dark";
 
@@ -43,7 +37,7 @@ const TaskMasterHero: React.FC<TaskMasterHeroProps> = ({
         overflow: "hidden",
       }}
     >
-      {/* רקע דקורטיבי רך */}
+      {/* רקע דקורטיבי רך מבוסס Palette */}
       <Box
         sx={{
           position: "absolute",
@@ -53,8 +47,8 @@ const TaskMasterHero: React.FC<TaskMasterHeroProps> = ({
           width: { xs: "100%", md: "900px" },
           height: "500px",
           background: isDark
-            ? "radial-gradient(circle, rgba(99,102,241,0.12) 0%, rgba(0,0,0,0) 70%)"
-            : "radial-gradient(circle, rgba(79,70,229,0.08) 0%, rgba(255,255,255,0) 70%)",
+            ? `radial-gradient(circle, ${alpha(theme.palette.primary.main, 0.15)} 0%, rgba(0,0,0,0) 70%)`
+            : `radial-gradient(circle, ${alpha(theme.palette.primary.main, 0.08)} 0%, rgba(255,255,255,0) 70%)`,
           filter: "blur(90px)",
           pointerEvents: "none",
           zIndex: 0,
@@ -74,6 +68,7 @@ const TaskMasterHero: React.FC<TaskMasterHeroProps> = ({
             mb: { xs: 8, md: 10 },
           }}
         >
+          {/* Badge עליון */}
           <Box
             sx={{
               display: "inline-flex",
@@ -89,11 +84,11 @@ const TaskMasterHero: React.FC<TaskMasterHeroProps> = ({
             }}
           >
             <WorkspacePremiumRoundedIcon
-              sx={{ fontSize: "18px", color: "primary.main" }}
+              sx={{ fontSize: 18, color: "primary.main" }}
             />
             <Typography
+              variant="caption"
               sx={{
-                fontSize: "0.8rem",
                 fontWeight: 700,
                 color: "text.secondary",
               }}
@@ -102,6 +97,7 @@ const TaskMasterHero: React.FC<TaskMasterHeroProps> = ({
             </Typography>
           </Box>
 
+          {/* כותרת ראשית H1 */}
           <Typography
             variant="h1"
             sx={{
@@ -116,7 +112,7 @@ const TaskMasterHero: React.FC<TaskMasterHeroProps> = ({
             <Box
               component="span"
               sx={{
-                background: "linear-gradient(135deg, #6366f1 0%, #a855f7 100%)",
+                background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
                 WebkitBackgroundClip: "text",
                 WebkitTextFillColor: "transparent",
               }}
@@ -125,6 +121,7 @@ const TaskMasterHero: React.FC<TaskMasterHeroProps> = ({
             </Box>
           </Typography>
 
+          {/* תיאור משנה */}
           <Typography
             variant="body1"
             sx={{
@@ -140,6 +137,7 @@ const TaskMasterHero: React.FC<TaskMasterHeroProps> = ({
             פוקוס מוחלט ויכולת לבצע יותר בפחות מאמץ.
           </Typography>
 
+          {/* כפתור הנעה לפעולה */}
           <Box
             sx={{
               display: "flex",
@@ -152,23 +150,20 @@ const TaskMasterHero: React.FC<TaskMasterHeroProps> = ({
             <Button
               component={RouterLink}
               to={ROUTES.WORKSPACE}
+              onClick={onGetStarted}
               variant="contained"
               size="large"
-              endIcon={<ArrowBackIcon sx={{ mr: 1, ml: -0.5 }} />}
+              color="primary"
+              endIcon={<ArrowBackIcon sx={{ transform: "scaleX(-1)" }} />}
               sx={{
                 px: 4.5,
                 py: 1.7,
                 borderRadius: "14px",
-                fontSize: "1.05rem",
                 fontWeight: 700,
                 textTransform: "none",
-                bgcolor: "#6366f1",
-                color: "#ffffff",
                 width: { xs: "100%", sm: "auto" },
-                boxShadow: "0 10px 25px rgba(99,102,241,0.35)",
-                "&:hover": {
-                  bgcolor: "#4f46e5",
-                },
+                boxShadow: (t) =>
+                  `0 10px 25px ${alpha(t.palette.primary.main, 0.35)}`,
               }}
             >
               בוא נתחיל לעבוד
@@ -176,7 +171,7 @@ const TaskMasterHero: React.FC<TaskMasterHeroProps> = ({
           </Box>
         </Box>
 
-        {/* מבנה Bento Grid חדשני הכולל את לוח השנה */}
+        {/* Bento Grid בגרסת MUI v6 */}
         <Grid container spacing={3}>
           {/* כרטיס גדול 1: לוחות עבודה חזותיים */}
           <Grid size={{ xs: 12, md: 8 }}>
@@ -194,7 +189,6 @@ const TaskMasterHero: React.FC<TaskMasterHeroProps> = ({
                 display: "flex",
                 flexDirection: "column",
                 justifyContent: "space-between",
-                position: "relative",
                 overflow: "hidden",
               }}
             >
@@ -204,14 +198,14 @@ const TaskMasterHero: React.FC<TaskMasterHeroProps> = ({
                     display: "inline-flex",
                     p: 1.5,
                     borderRadius: "12px",
-                    bgcolor: alpha("#6366f1", 0.1),
-                    color: "#6366f1",
+                    bgcolor: alpha(theme.palette.primary.main, 0.1),
+                    color: "primary.main",
                     mb: 2,
                   }}
                 >
                   <LayersRoundedIcon />
                 </Box>
-                <Typography variant="h5" fontWeight="800" sx={{ mb: 1 }}>
+                <Typography variant="h5" sx={{ fontWeight: 800, mb: 1 }}>
                   לוחות עבודה חכמים (Kanban)
                 </Typography>
                 <Typography
@@ -224,7 +218,7 @@ const TaskMasterHero: React.FC<TaskMasterHeroProps> = ({
                 </Typography>
               </Box>
 
-              {/* מוקאפ פנימי קטן שממחיש לוח */}
+              {/* מוקאפ לוח עבודה */}
               <Box
                 sx={{
                   display: "flex",
@@ -235,7 +229,7 @@ const TaskMasterHero: React.FC<TaskMasterHeroProps> = ({
               >
                 <Box
                   sx={{
-                    minWidth: "180px",
+                    minWidth: 180,
                     p: 2,
                     borderRadius: "14px",
                     bgcolor: "background.paper",
@@ -244,10 +238,11 @@ const TaskMasterHero: React.FC<TaskMasterHeroProps> = ({
                   }}
                 >
                   <Typography
+                    variant="caption"
                     sx={{
-                      fontSize: "0.75rem",
                       fontWeight: 700,
                       color: "text.secondary",
+                      display: "block",
                       mb: 1.5,
                     }}
                   >
@@ -261,11 +256,11 @@ const TaskMasterHero: React.FC<TaskMasterHeroProps> = ({
                         ? alpha("#ffffff", 0.03)
                         : alpha("#000000", 0.03),
                       mb: 1,
-                      fontSize: "0.8rem",
-                      fontWeight: 600,
                     }}
                   >
-                    עיצוב ממשק משתמש
+                    <Typography variant="caption" sx={{ fontWeight: 600 }}>
+                      עיצוב ממשק משתמש
+                    </Typography>
                   </Box>
                   <Box
                     sx={{
@@ -274,17 +269,17 @@ const TaskMasterHero: React.FC<TaskMasterHeroProps> = ({
                       bgcolor: isDark
                         ? alpha("#ffffff", 0.03)
                         : alpha("#000000", 0.03),
-                      fontSize: "0.8rem",
-                      fontWeight: 600,
                     }}
                   >
-                    כתיבת מסמך דרישות
+                    <Typography variant="caption" sx={{ fontWeight: 600 }}>
+                      כתיבת מסמך דרישות
+                    </Typography>
                   </Box>
                 </Box>
 
                 <Box
                   sx={{
-                    minWidth: "180px",
+                    minWidth: 180,
                     p: 2,
                     borderRadius: "14px",
                     bgcolor: "background.paper",
@@ -293,10 +288,11 @@ const TaskMasterHero: React.FC<TaskMasterHeroProps> = ({
                   }}
                 >
                   <Typography
+                    variant="caption"
                     sx={{
-                      fontSize: "0.75rem",
                       fontWeight: 700,
-                      color: "#6366f1",
+                      color: "primary.main",
+                      display: "block",
                       mb: 1.5,
                     }}
                   >
@@ -306,20 +302,20 @@ const TaskMasterHero: React.FC<TaskMasterHeroProps> = ({
                     sx={{
                       p: 1.5,
                       borderRadius: "8px",
-                      bgcolor: alpha("#6366f1", 0.08),
-                      color: "#6366f1",
-                      fontSize: "0.8rem",
-                      fontWeight: 700,
+                      bgcolor: alpha(theme.palette.primary.main, 0.08),
+                      color: "primary.main",
                     }}
                   >
-                    פיתוח רכיבי צד-לקוח
+                    <Typography variant="caption" sx={{ fontWeight: 700 }}>
+                      פיתוח רכיבי צד-לקוח
+                    </Typography>
                   </Box>
                 </Box>
               </Box>
             </Paper>
           </Grid>
 
-          {/* כרטיס צדדי 2: לוח שנה חכם (Calendar Feature) */}
+          {/* כרטיס צדדי 2: לוח שנה חכם */}
           <Grid size={{ xs: 12, md: 4 }}>
             <Paper
               elevation={0}
@@ -343,14 +339,14 @@ const TaskMasterHero: React.FC<TaskMasterHeroProps> = ({
                     display: "inline-flex",
                     p: 1.5,
                     borderRadius: "12px",
-                    bgcolor: alpha("#a855f7", 0.1),
-                    color: "#a855f7",
+                    bgcolor: alpha(theme.palette.secondary.main, 0.1),
+                    color: "secondary.main",
                     mb: 2,
                   }}
                 >
                   <CalendarMonthRoundedIcon />
                 </Box>
-                <Typography variant="h5" fontWeight="800" sx={{ mb: 1 }}>
+                <Typography variant="h5" sx={{ fontWeight: 800, mb: 1 }}>
                   לוח שנה וניהול תאריכים
                 </Typography>
                 <Typography
@@ -384,28 +380,28 @@ const TaskMasterHero: React.FC<TaskMasterHeroProps> = ({
                     alignItems: "center",
                   }}
                 >
-                  <Typography sx={{ fontSize: "0.85rem", fontWeight: 700 }}>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
                     📅 יולי 2026
                   </Typography>
                   <Typography
+                    variant="caption"
                     sx={{
-                      fontSize: "0.75rem",
                       fontWeight: 600,
-                      color: "#a855f7",
+                      color: "secondary.main",
                     }}
                   >
                     3 משימות היום
                   </Typography>
                 </Box>
 
-                {/* דוגמה למשימה משובצת בלוח השנה */}
+                {/* דוגמה למשימה */}
                 <Box
                   sx={{
                     p: 1.5,
                     borderRadius: "10px",
-                    bgcolor: alpha("#a855f7", 0.08),
+                    bgcolor: alpha(theme.palette.secondary.main, 0.08),
                     border: "1px solid",
-                    borderColor: alpha("#a855f7", 0.2),
+                    borderColor: alpha(theme.palette.secondary.main, 0.2),
                     display: "flex",
                     alignItems: "center",
                     gap: 1.5,
@@ -416,23 +412,31 @@ const TaskMasterHero: React.FC<TaskMasterHeroProps> = ({
                       width: 28,
                       height: 28,
                       borderRadius: "8px",
-                      bgcolor: "#a855f7",
+                      bgcolor: "secondary.main",
                       color: "#ffffff",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
-                      fontSize: "0.75rem",
-                      fontWeight: 700,
                     }}
                   >
-                    12
+                    <Typography
+                      variant="caption"
+                      sx={{ fontWeight: 700, color: "common.white" }}
+                    >
+                      12
+                    </Typography>
                   </Box>
                   <Box>
-                    <Typography sx={{ fontSize: "0.8rem", fontWeight: 700 }}>
+                    <Typography
+                      variant="caption"
+                      sx={{ fontWeight: 700, display: "block" }}
+                    >
                       הגשת פרויקט גמר
                     </Typography>
                     <Typography
-                      sx={{ fontSize: "0.7rem", color: "text.secondary" }}
+                      variant="caption"
+                      color="text.secondary"
+                      sx={{ fontSize: "0.7rem" }}
                     >
                       שעה 14:00 • דדליין ראשי
                     </Typography>

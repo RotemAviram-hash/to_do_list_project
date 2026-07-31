@@ -12,9 +12,9 @@ import {
   ListItemIcon,
   ListItemText,
   Tooltip,
-  alpha,
-  useTheme,
+  Typography,
 } from "@mui/material";
+import { alpha, useTheme } from "@mui/material/styles";
 
 // Icons
 import SearchIcon from "@mui/icons-material/Search";
@@ -42,7 +42,7 @@ interface BoardControlsPanelProps {
   activeBoardId: string;
   onTabChange: (event: React.SyntheticEvent, newValue: string) => void;
   getColumnCount?: (id: string) => number;
-  onDeleteBoard: (boardId: string) => Promise<void> | void;
+  onDeleteBoard: (boardId: string, hasColumns: boolean) => Promise<void>;
 
   filters?: FilterOptions;
   setFilters?: React.Dispatch<React.SetStateAction<FilterOptions>>;
@@ -72,32 +72,27 @@ export const BoardControlsPanel: React.FC<BoardControlsPanelProps> = React.memo(
     onToggleMine,
   }) => {
     const theme = useTheme();
-    const isDarkMode = theme.palette.mode === "dark";
     const { user } = useUser();
     const currentUserId = user?.id || "";
 
-    // Dialogs State
+    // Dialogs & Menu State
     const [isCreateOpen, setIsCreateOpen] = useState(false);
     const [isEditOpen, setIsEditOpen] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
-
-    // Menu State
     const [menuAnchorEl, setMenuAnchorEl] = useState<null | HTMLElement>(null);
 
-    // Filter Active Values
+    // Derived Active Filter Values
     const currentSearchQuery = filters?.searchQuery ?? propSearchQuery;
     const isSavedActive = filters?.showOnlySaved ?? propShowOnlySaved ?? false;
     const isMineActive = filters?.showOnlyMine ?? propShowOnlyMine ?? false;
 
-    // Active Board Object
+    // Active Board Resolution
     const activeBoard = useMemo(
       () => boards.find((b) => b.id === activeBoardId),
       [boards, activeBoardId],
     );
 
-    const validActiveValue = boards.some((b) => b.id === activeBoardId)
-      ? activeBoardId
-      : false;
+    const validActiveValue = activeBoard ? activeBoardId : false;
 
     // Handlers
     const handleSearchChange = useCallback(
@@ -132,17 +127,42 @@ export const BoardControlsPanel: React.FC<BoardControlsPanelProps> = React.memo(
       setMenuAnchorEl(null);
       if (!activeBoardId || isDeleting) return;
 
+      const hasColumns = resolveColumnCount(activeBoardId) > 0;
+
+      // 💡 אופטימיזציה: אם יש עמודות, שולחים ישר ל-onDeleteBoard שיציג את ה-Snackbar
+      // מבלי להציק למשתמש עם חלון confirm מיותר!
+      if (hasColumns) {
+        await onDeleteBoard(activeBoardId, true);
+        return;
+      }
+
+      // רק אם הלוח באמת ריק - שואלים את המשתמש וממשיכים במחיקה
       if (window.confirm(`האם למחוק את הלוח "${activeBoard?.title || ""}"?`)) {
         try {
           setIsDeleting(true);
-          await onDeleteBoard(activeBoardId);
+          await onDeleteBoard(activeBoardId, false);
         } catch (err) {
           console.error("שגיאה במחיקת הלוח:", err);
         } finally {
           setIsDeleting(false);
         }
       }
-    }, [activeBoardId, activeBoard?.title, isDeleting, onDeleteBoard]);
+    }, [
+      activeBoardId,
+      activeBoard?.title,
+      isDeleting,
+      onDeleteBoard,
+      resolveColumnCount, // 👈 הוסף למערך ה-dependencies
+    ]);
+
+    const handleCloseMenu = useCallback(() => setMenuAnchorEl(null), []);
+    const handleOpenCreate = useCallback(() => setIsCreateOpen(true), []);
+    const handleCloseCreate = useCallback(() => setIsCreateOpen(false), []);
+    const handleOpenEdit = useCallback(() => {
+      setMenuAnchorEl(null);
+      setIsEditOpen(true);
+    }, []);
+    const handleCloseEdit = useCallback(() => setIsEditOpen(false), []);
 
     return (
       <Paper
@@ -150,28 +170,30 @@ export const BoardControlsPanel: React.FC<BoardControlsPanelProps> = React.memo(
           p: 1.8,
           mb: 3,
           borderRadius: "20px",
-          bgcolor: theme.palette.background.paper, // #1C2541 בחושך / #FFFFFF באור
-          boxShadow: isDarkMode
-            ? "0 10px 30px -10px rgba(0,0,0,0.4)"
-            : "0 10px 25px -5px rgba(0, 0, 0, 0.04)",
+          bgcolor: "background.paper",
+          boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.04)",
+          // ✅ MUI v6 Pattern for Dark Mode
+          ...theme.applyStyles("dark", {
+            boxShadow: "0 10px 30px -10px rgba(0, 0, 0, 0.4)",
+          }),
           display: "flex",
           flexDirection: "column",
           gap: 1.8,
           width: "100%",
         }}
       >
-        {/* שורה 1: סרגל הטאבים (שכבת הביניים action.hover) + כפתור הוספה + 3 נקודות */}
+        {/* שורה 1: סרגל הטאבים + כפתורי פעולה */}
         <Box
           sx={{
             display: "flex",
             alignItems: "center",
             gap: 1,
             width: "100%",
-            bgcolor: theme.palette.action.hover, // #111A33 בחושך / #F1F3F5 באור
+            bgcolor: "action.hover",
             p: 0.6,
             borderRadius: "14px",
             border: "1px solid",
-            borderColor: theme.palette.divider,
+            borderColor: "divider",
           }}
         >
           <Tabs
@@ -204,48 +226,47 @@ export const BoardControlsPanel: React.FC<BoardControlsPanelProps> = React.memo(
                     fontSize: "0.88rem",
                     fontWeight: isActive ? 700 : 500,
                     textTransform: "none",
-
-                    // 1️⃣ צבע דיפולטיבי לפני בחירה
-                    color: theme.palette.text.primary,
+                    color: isActive ? "primary.contrastText" : "text.primary",
                     background: isActive
                       ? `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`
                       : "transparent",
                     boxShadow: isActive
-                      ? `0 4px 14px ${alpha(theme.palette.primary.main, isDarkMode ? 0.45 : 0.3)}`
+                      ? `0 4px 14px ${alpha(theme.palette.primary.main, 0.3)}`
                       : "none",
+                    // ✅ MUI v6 applyStyles for tab active state shadow
+                    ...(isActive &&
+                      theme.applyStyles("dark", {
+                        boxShadow: `0 4px 14px ${alpha(
+                          theme.palette.primary.main,
+                          0.45,
+                        )}`,
+                      })),
                     transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
-
-                    // 2️⃣ 🔑 התיקון הקריטי: דריסת העיצוב המובנה של MUI לטאב נבחר!
-                    "&.Mui-selected": {
-                      color: `${theme.palette.primary.contrastText} !important`,
-                    },
-
                     "&:hover": {
-                      color: isActive
-                        ? theme.palette.primary.contrastText
-                        : theme.palette.text.primary,
+                      color: isActive ? "primary.contrastText" : "text.primary",
                       bgcolor: isActive
                         ? undefined
-                        : alpha(
-                            theme.palette.primary.main,
-                            isDarkMode ? 0.15 : 0.08,
-                          ),
+                        : alpha(theme.palette.primary.main, 0.08),
+                      ...(!isActive &&
+                        theme.applyStyles("dark", {
+                          bgcolor: alpha(theme.palette.primary.main, 0.15),
+                        })),
                     },
                   }}
                   label={
                     <Box
                       sx={{ display: "flex", alignItems: "center", gap: 1.2 }}
                     >
-                      {/* 3️⃣ וידוא שהטקסט הפנימי יורש את הצבע הנכון */}
-                      <span
-                        style={{
-                          color: isActive
-                            ? theme.palette.primary.contrastText
-                            : "inherit",
+                      <Typography
+                        component="span"
+                        sx={{
+                          fontSize: "inherit",
+                          fontWeight: "inherit",
+                          color: "inherit",
                         }}
                       >
                         {board.title}
-                      </span>
+                      </Typography>
 
                       <Box
                         component="span"
@@ -257,12 +278,14 @@ export const BoardControlsPanel: React.FC<BoardControlsPanelProps> = React.memo(
                           fontWeight: 700,
                           bgcolor: isActive
                             ? alpha(theme.palette.primary.contrastText, 0.22)
-                            : isDarkMode
-                              ? alpha(theme.palette.common.white, 0.1)
-                              : alpha(theme.palette.common.black, 0.06),
+                            : alpha(theme.palette.common.black, 0.06),
                           color: isActive
-                            ? theme.palette.primary.contrastText
-                            : theme.palette.text.secondary,
+                            ? "primary.contrastText"
+                            : "text.secondary",
+                          ...(!isActive &&
+                            theme.applyStyles("dark", {
+                              bgcolor: alpha(theme.palette.common.white, 0.1),
+                            })),
                           transition: "all 0.2s ease",
                         }}
                       >
@@ -279,24 +302,27 @@ export const BoardControlsPanel: React.FC<BoardControlsPanelProps> = React.memo(
           <Tooltip title="יצירת לוח חדש">
             <IconButton
               size="small"
-              onClick={() => setIsCreateOpen(true)}
+              onClick={handleOpenCreate}
               sx={{
                 width: 38,
                 height: 38,
                 borderRadius: "10px",
-                color: theme.palette.primary.main,
-                bgcolor: alpha(
-                  theme.palette.primary.main,
-                  isDarkMode ? 0.15 : 0.08,
-                ),
+                color: "primary.main",
+                bgcolor: alpha(theme.palette.primary.main, 0.08),
                 border: "1px solid",
                 borderColor: alpha(theme.palette.primary.main, 0.25),
                 flexShrink: 0,
                 transition: "all 0.2s ease",
+                ...theme.applyStyles("dark", {
+                  bgcolor: alpha(theme.palette.primary.main, 0.15),
+                }),
                 "&:hover": {
-                  bgcolor: theme.palette.primary.main,
-                  color: theme.palette.primary.contrastText,
-                  boxShadow: `0 4px 12px ${alpha(theme.palette.primary.main, 0.35)}`,
+                  bgcolor: "primary.main",
+                  color: "primary.contrastText",
+                  boxShadow: `0 4px 12px ${alpha(
+                    theme.palette.primary.main,
+                    0.35,
+                  )}`,
                 },
               }}
             >
@@ -304,7 +330,7 @@ export const BoardControlsPanel: React.FC<BoardControlsPanelProps> = React.memo(
             </IconButton>
           </Tooltip>
 
-          {/* תפריט 3 נקודות ללוח */}
+          {/* תפריט אפשרויות לוח */}
           <Tooltip title={!activeBoard || isDeleting ? "" : "אפשרויות לוח"}>
             <span>
               <IconButton
@@ -315,15 +341,15 @@ export const BoardControlsPanel: React.FC<BoardControlsPanelProps> = React.memo(
                   width: 38,
                   height: 38,
                   borderRadius: "10px",
-                  color: theme.palette.text.secondary,
-                  bgcolor: theme.palette.background.paper,
+                  color: "text.secondary",
+                  bgcolor: "background.paper",
                   border: "1px solid",
-                  borderColor: theme.palette.divider,
+                  borderColor: "divider",
                   flexShrink: 0,
                   transition: "all 0.2s ease",
                   "&:hover": {
-                    borderColor: theme.palette.primary.main,
-                    color: theme.palette.primary.main,
+                    borderColor: "primary.main",
+                    color: "primary.main",
                     bgcolor: alpha(theme.palette.primary.main, 0.08),
                   },
                 }}
@@ -334,7 +360,7 @@ export const BoardControlsPanel: React.FC<BoardControlsPanelProps> = React.memo(
           </Tooltip>
         </Box>
 
-        {/* שורה 2: חיפוש וסינונים (צמודים) */}
+        {/* שורה 2: חיפוש וסינונים */}
         <Box
           sx={{
             display: "flex",
@@ -352,23 +378,22 @@ export const BoardControlsPanel: React.FC<BoardControlsPanelProps> = React.memo(
               px: 1.8,
               py: 0.6,
               borderRadius: "12px",
-              bgcolor: theme.palette.action.hover, // שכבת ביניים אחידה לטאבים
+              bgcolor: "action.hover",
               border: "1.5px solid",
-              borderColor: currentSearchQuery
-                ? theme.palette.primary.main
-                : theme.palette.divider,
+              borderColor: currentSearchQuery ? "primary.main" : "divider",
               transition: "all 0.2s ease",
               width: { xs: "100%", sm: 280 },
               "&:focus-within": {
-                borderColor: theme.palette.primary.main,
-                bgcolor: theme.palette.background.paper,
-                boxShadow: `0 0 0 3px ${alpha(theme.palette.primary.main, 0.15)}`,
+                borderColor: "primary.main",
+                bgcolor: "background.paper",
+                boxShadow: `0 0 0 3px ${alpha(
+                  theme.palette.primary.main,
+                  0.15,
+                )}`,
               },
             }}
           >
-            <SearchIcon
-              sx={{ fontSize: 20, color: theme.palette.primary.main, mr: 1 }}
-            />
+            <SearchIcon sx={{ fontSize: 20, color: "primary.main", mr: 1 }} />
             <InputBase
               placeholder="חיפוש משימות..."
               value={currentSearchQuery}
@@ -377,7 +402,7 @@ export const BoardControlsPanel: React.FC<BoardControlsPanelProps> = React.memo(
                 fontSize: "0.88rem",
                 width: "100%",
                 fontWeight: 500,
-                color: theme.palette.text.primary,
+                color: "text.primary",
               }}
             />
             {currentSearchQuery && (
@@ -386,9 +411,7 @@ export const BoardControlsPanel: React.FC<BoardControlsPanelProps> = React.memo(
                 onClick={() => handleSearchChange("")}
                 sx={{ p: 0.2 }}
               >
-                <ClearIcon
-                  sx={{ fontSize: 16, color: theme.palette.text.secondary }}
-                />
+                <ClearIcon sx={{ fontSize: 16, color: "text.secondary" }} />
               </IconButton>
             )}
           </Box>
@@ -400,12 +423,10 @@ export const BoardControlsPanel: React.FC<BoardControlsPanelProps> = React.memo(
               onClick={handleToggleSaved}
               startIcon={
                 isSavedActive ? (
-                  <BookmarkIcon
-                    sx={{ fontSize: 18, color: theme.palette.warning.main }}
-                  />
+                  <BookmarkIcon sx={{ fontSize: 18, color: "warning.main" }} />
                 ) : (
                   <BookmarkBorderIcon
-                    sx={{ fontSize: 18, color: theme.palette.warning.main }}
+                    sx={{ fontSize: 18, color: "warning.main" }}
                   />
                 )
               }
@@ -416,20 +437,20 @@ export const BoardControlsPanel: React.FC<BoardControlsPanelProps> = React.memo(
                 textTransform: "none",
                 px: 2,
                 py: 0.75,
-                color: isSavedActive
-                  ? theme.palette.warning.main
-                  : theme.palette.text.primary,
+                color: isSavedActive ? "warning.main" : "text.primary",
                 bgcolor: isSavedActive
-                  ? alpha(theme.palette.warning.main, isDarkMode ? 0.2 : 0.12)
-                  : theme.palette.action.hover,
+                  ? alpha(theme.palette.warning.main, 0.12)
+                  : "action.hover",
+                ...(isSavedActive &&
+                  theme.applyStyles("dark", {
+                    bgcolor: alpha(theme.palette.warning.main, 0.2),
+                  })),
                 border: "1.5px solid",
-                borderColor: isSavedActive
-                  ? theme.palette.warning.main
-                  : theme.palette.divider,
+                borderColor: isSavedActive ? "warning.main" : "divider",
                 transition: "all 0.2s ease",
                 "&:hover": {
                   bgcolor: alpha(theme.palette.warning.main, 0.2),
-                  borderColor: theme.palette.warning.main,
+                  borderColor: "warning.main",
                 },
               }}
             >
@@ -441,12 +462,10 @@ export const BoardControlsPanel: React.FC<BoardControlsPanelProps> = React.memo(
               onClick={handleToggleMine}
               startIcon={
                 isMineActive ? (
-                  <PersonIcon
-                    sx={{ fontSize: 18, color: theme.palette.secondary.main }}
-                  />
+                  <PersonIcon sx={{ fontSize: 18, color: "secondary.main" }} />
                 ) : (
                   <PersonOutlineIcon
-                    sx={{ fontSize: 18, color: theme.palette.secondary.main }}
+                    sx={{ fontSize: 18, color: "secondary.main" }}
                   />
                 )
               }
@@ -457,20 +476,20 @@ export const BoardControlsPanel: React.FC<BoardControlsPanelProps> = React.memo(
                 textTransform: "none",
                 px: 2,
                 py: 0.75,
-                color: isMineActive
-                  ? theme.palette.secondary.main
-                  : theme.palette.text.primary,
+                color: isMineActive ? "secondary.main" : "text.primary",
                 bgcolor: isMineActive
-                  ? alpha(theme.palette.secondary.main, isDarkMode ? 0.2 : 0.12)
-                  : theme.palette.action.hover,
+                  ? alpha(theme.palette.secondary.main, 0.12)
+                  : "action.hover",
+                ...(isMineActive &&
+                  theme.applyStyles("dark", {
+                    bgcolor: alpha(theme.palette.secondary.main, 0.2),
+                  })),
                 border: "1.5px solid",
-                borderColor: isMineActive
-                  ? theme.palette.secondary.main
-                  : theme.palette.divider,
+                borderColor: isMineActive ? "secondary.main" : "divider",
                 transition: "all 0.2s ease",
                 "&:hover": {
                   bgcolor: alpha(theme.palette.secondary.main, 0.2),
-                  borderColor: theme.palette.secondary.main,
+                  borderColor: "secondary.main",
                 },
               }}
             >
@@ -479,11 +498,11 @@ export const BoardControlsPanel: React.FC<BoardControlsPanelProps> = React.memo(
           </Box>
         </Box>
 
-        {/* תפריט נפתח (3 נקודות) */}
+        {/* תפריט 3 נקודות - v6 SlotProps Standard */}
         <Menu
           anchorEl={menuAnchorEl}
           open={Boolean(menuAnchorEl)}
-          onClose={() => setMenuAnchorEl(null)}
+          onClose={handleCloseMenu}
           slotProps={{
             paper: {
               sx: {
@@ -491,28 +510,24 @@ export const BoardControlsPanel: React.FC<BoardControlsPanelProps> = React.memo(
                 minWidth: 160,
                 mt: 1,
                 boxShadow: theme.shadows[8],
-                bgcolor: theme.palette.background.paper,
+                bgcolor: "background.paper",
               },
             },
           }}
           transformOrigin={{ horizontal: "left", vertical: "top" }}
           anchorOrigin={{ horizontal: "left", vertical: "bottom" }}
         >
-          <MenuItem
-            onClick={() => {
-              setMenuAnchorEl(null);
-              setIsEditOpen(true);
-            }}
-            sx={{ py: 1, px: 2 }}
-          >
+          <MenuItem onClick={handleOpenEdit} sx={{ py: 1, px: 2 }}>
             <ListItemIcon>
-              <EditOutlinedIcon
-                sx={{ fontSize: 18, color: theme.palette.primary.main }}
-              />
+              <EditOutlinedIcon sx={{ fontSize: 18, color: "primary.main" }} />
             </ListItemIcon>
             <ListItemText
               primary="עריכת לוח"
-              primaryTypographyProps={{ fontSize: "0.85rem", fontWeight: 600 }}
+              slotProps={{
+                primary: {
+                  sx: { fontSize: "0.85rem", fontWeight: 600 }, // 👈 העברה לתוך sx
+                },
+              }}
             />
           </MenuItem>
 
@@ -521,18 +536,20 @@ export const BoardControlsPanel: React.FC<BoardControlsPanelProps> = React.memo(
             sx={{
               py: 1,
               px: 2,
-              color: theme.palette.error.main,
+              color: "error.main",
               "&:hover": { bgcolor: alpha(theme.palette.error.main, 0.08) },
             }}
           >
             <ListItemIcon>
-              <DeleteOutlinedIcon
-                sx={{ fontSize: 18, color: theme.palette.error.main }}
-              />
+              <DeleteOutlinedIcon sx={{ fontSize: 18, color: "error.main" }} />
             </ListItemIcon>
             <ListItemText
               primary="מחיקת לוח"
-              primaryTypographyProps={{ fontSize: "0.85rem", fontWeight: 600 }}
+              slotProps={{
+                primary: {
+                  sx: { fontSize: "0.85rem", fontWeight: 600 }, // 👈 העברה לתוך sx
+                },
+              }}
             />
           </MenuItem>
         </Menu>
@@ -540,14 +557,14 @@ export const BoardControlsPanel: React.FC<BoardControlsPanelProps> = React.memo(
         {/* דיאלוגים */}
         <CreateBoardDialog
           open={isCreateOpen}
-          onClose={() => setIsCreateOpen(false)}
+          onClose={handleCloseCreate}
           currentUserId={currentUserId}
         />
 
         {activeBoard && (
           <EditBoardDialog
             open={isEditOpen}
-            onClose={() => setIsEditOpen(false)}
+            onClose={handleCloseEdit}
             board={activeBoard}
           />
         )}

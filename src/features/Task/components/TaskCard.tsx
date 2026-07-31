@@ -6,21 +6,10 @@ import {
   Typography,
   Box,
   Divider,
-  Tooltip,
-  IconButton,
-  Button,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 
-// אייקונים
-import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
-import DeleteOutlinedIcon from "@mui/icons-material/DeleteOutlined";
-import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
-import BookmarkIcon from "@mui/icons-material/Bookmark";
-import BookmarkBorderIcon from "@mui/icons-material/BookmarkBorder";
-import AssignmentIndIcon from "@mui/icons-material/AssignmentInd";
-
-// הקונטקסטים וההוקים של המערכת
+// הקונטקסטים וההוקים
 import {
   ProjectThemeContext,
   type ThemeContextType,
@@ -28,29 +17,18 @@ import {
 import ROUTES from "../../../router/routes";
 import { useUser } from "../../User/hooks/useUser";
 import { useUsers } from "../../User/hooks/useUsers";
-import { UserAvatar } from "../../User/components/UserAvatar";
-import type { Column, ColumnTheme } from "../../Column/models/Column";
+import type { Column } from "../../Column/models/Column";
 import type { Task } from "../models/Task";
 import { EditTaskDialog } from "../dialogs/EditTaskDialog";
 import { useTasks } from "../hooks/useTasks";
 
-// מפת הצבעים של העמודות (תואמת למה שהוגדר בכותרת העמודה)
-export const THEME_COLOR_MAP: Record<
-  ColumnTheme,
-  { main: string; label: string }
-> = {
-  blue: { main: "#3b82f6", label: "כחול" },
-  red: { main: "#ef4444", label: "אדום" },
-  green: { main: "#22c55e", label: "ירוק" },
-  yellow: { main: "#eab308", label: "צהוב" },
-  purple: { main: "#a855f7", label: "סגול" },
-  gray: { main: "#64748b", label: "אפור" },
-  cyan: { main: "#06b6d4", label: "ציאן" },
-  pink: { main: "#ec4899", label: "ורוד" },
-  orange: { main: "#f97316", label: "כתום" },
-  indigo: { main: "#6366f1", label: "אינדיגו" },
-  teal: { main: "#14b8a6", label: "טיאל" },
-};
+// תת-קומפוננטות והקבועים
+import { THEME_COLOR_MAP } from "./TaskCardConstants";
+import { TaskActions } from "./TaskActions";
+import { TaskDueDate } from "./TaskDueDate";
+import { TaskBookmark } from "./TaskBookmark";
+import { TaskAssignee } from "./TaskAssignee";
+import { TaskComments } from "./TaskComments";
 
 interface TaskCardProps {
   task: Task;
@@ -77,22 +55,37 @@ function TaskCard({
 
   const currentUserId = user?.id || "";
 
-  // ⚡ אופטימיזציה: מציאת העמודה של המשימה והתאמת הצבע שלה מתוך ה-Theme
-  const column = useMemo(() => {
+  // ⚡ איתור העמודה הנוכחית
+  const currentColumn = useMemo(() => {
     return columns.find((col) => col.id === task.columnId);
   }, [columns, task.columnId]);
 
-  const columnTheme = column?.theme || "gray";
-  const themeColorObj = THEME_COLOR_MAP[columnTheme] || THEME_COLOR_MAP.gray;
+  // ⚡ חילוץ צבע העמודה הישיר והתאמה מיידית
+  const activeColor = useMemo(() => {
+    // 1. אם העבירו borderColor מפורש שאינו ברירת המחדל
+    if (borderColor && borderColor !== "#199ed2") {
+      return borderColor;
+    }
+    // 2. אם בעמודה יש שדה color ישיר (כמו Hex code: "#ff0000")
+    if ((currentColumn as any)?.color) {
+      return (currentColumn as any).color;
+    }
+    // 3. אם בעמודה יש שדה theme (מתוך מפת המנגנון)
+    if (currentColumn?.theme) {
+      return THEME_COLOR_MAP[currentColumn.theme]?.main || currentColumn.theme;
+    }
+    // 4. ברירת מחדל
+    return "#199ed2";
+  }, [borderColor, currentColumn]);
 
-  // אם לא הועבר borderColor ספציפי מבחוץ, ניקח את הצבע של העמודה
-  const activeColor =
-    borderColor !== "#199ed2" ? borderColor : themeColorObj.main;
-
-  // ⚡ אופטימיזציה: שמירת חישובים כבדים ב-useMemo למניעת חישוב מיותר ברנדורים
+  // ⚡ חישוב נתונים נגזרים ב-useMemo
   const isSavedByMe = useMemo(() => {
     return task.savedBy?.includes(currentUserId) || false;
   }, [task.savedBy, currentUserId]);
+
+  const commentsCount = useMemo(() => {
+    return task.comments?.length || 0;
+  }, [task.comments]);
 
   const assigneeName = useMemo(() => {
     return getUserName(task.assigneeId);
@@ -102,7 +95,7 @@ function TaskCard({
     return task.assigneeId ? usersMap[task.assigneeId] : null;
   }, [usersMap, task.assigneeId]);
 
-  // ⚡ אופטימיזציה: מניעת יצירת פונקציות מחדש בכל רנדור בעזרת useCallback
+  // ⚡ Handlers עטופים ב-useCallback
   const handleToggleSave = useCallback(
     async (e: React.MouseEvent) => {
       e.stopPropagation();
@@ -125,10 +118,14 @@ function TaskCard({
 
   const handleDeleteTask = useCallback(
     (e: React.MouseEvent) => {
-      e.stopPropagation();
-      deleteTask(task.id);
+      e.stopPropagation(); // מונע פתיחה של ה-Modal/Card בטעות
+
+      // חלון אישור לפני מחיקה
+      if (window.confirm(`האם למחוק את המשימה "${task.title || ""}"?`)) {
+        deleteTask(task.id);
+      }
     },
-    [deleteTask, task.id],
+    [deleteTask, task.id, task.title], // 👈 הוספת task.title למערך התלויות
   );
 
   const handleNavigate = useCallback(() => {
@@ -180,7 +177,7 @@ function TaskCard({
         },
       }}
     >
-      {/* פס צבע בצד הכרטיס התואם לעמודה */}
+      {/* פס צבע בצד הכרטיס */}
       <Box
         sx={{
           position: "absolute",
@@ -194,73 +191,17 @@ function TaskCard({
         }}
       />
 
+      {/* כפתורי פעולות (עריכה ומחיקה) */}
       {user && (
-        <Box
-          className="task-actions"
-          sx={{
-            position: "absolute",
-            top: 10,
-            left: 10,
-            zIndex: 3,
-            display: "flex",
-            gap: 0.5,
-            bgcolor: isDark
-              ? "rgba(30, 41, 59, 0.85)"
-              : "rgba(255, 255, 255, 0.9)",
-            backdropFilter: "blur(6px)",
-            borderRadius: "10px",
-            p: "2px",
-            border: "1px solid",
-            borderColor: "divider",
-            opacity: { xs: 1, sm: 0 },
-            transform: { xs: "none", sm: "translateY(2px)" },
-            transition: "all 0.2s ease-in-out",
-          }}
-        >
-          <Tooltip title="עריכת משימה">
-            <IconButton
-              size="small"
-              onPointerDown={handlePointerDown}
-              onClick={handleOpenEdit}
-              sx={{
-                color: "text.secondary",
-                borderRadius: "8px",
-                p: "6px",
-                "&:hover": {
-                  color: "primary.main",
-                  bgcolor: isDark
-                    ? "rgba(25, 118, 210, 0.15)"
-                    : "rgba(25, 118, 210, 0.08)",
-                },
-              }}
-            >
-              <EditOutlinedIcon sx={{ fontSize: 16 }} />
-            </IconButton>
-          </Tooltip>
-
-          <Tooltip title="מחיקת משימה">
-            <IconButton
-              size="small"
-              onPointerDown={handlePointerDown}
-              onClick={handleDeleteTask}
-              sx={{
-                color: "text.secondary",
-                borderRadius: "8px",
-                p: "6px",
-                "&:hover": {
-                  color: "error.main",
-                  bgcolor: isDark
-                    ? "rgba(244, 67, 54, 0.15)"
-                    : "rgba(211, 47, 47, 0.08)",
-                },
-              }}
-            >
-              <DeleteOutlinedIcon sx={{ fontSize: 16 }} />
-            </IconButton>
-          </Tooltip>
-        </Box>
+        <TaskActions
+          isDark={isDark}
+          onEdit={handleOpenEdit}
+          onDelete={handleDeleteTask}
+          onPointerDown={handlePointerDown}
+        />
       )}
 
+      {/* גוף הכרטיס הלחיץ */}
       <CardActionArea
         component="div"
         onClick={handleNavigate}
@@ -269,6 +210,7 @@ function TaskCard({
         <CardContent
           sx={{ p: "18px 20px 14px 20px", "&:last-child": { pb: "14px" } }}
         >
+          {/* כותרת המשימה */}
           <Typography
             variant="body1"
             sx={{
@@ -288,6 +230,7 @@ function TaskCard({
             {task.title}
           </Typography>
 
+          {/* תיאור המשימה */}
           {task.description && (
             <Typography
               variant="body2"
@@ -310,6 +253,7 @@ function TaskCard({
 
           <Divider sx={{ my: 1.25, opacity: 0.6 }} />
 
+          {/* פוטר הכרטיס */}
           <Box
             sx={{
               display: "flex",
@@ -321,114 +265,37 @@ function TaskCard({
             <Box
               sx={{
                 display: "flex",
-                gap: 1.5,
+                gap: 1,
                 alignItems: "center",
                 color: "text.secondary",
               }}
             >
               {task.dueDate && (
-                <Box
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 0.5,
-                    bgcolor: isDark
-                      ? "rgba(255,255,255,0.04)"
-                      : "rgba(0,0,0,0.03)",
-                    px: "8px",
-                    py: "3px",
-                    borderRadius: "6px",
-                  }}
-                >
-                  <CalendarTodayIcon
-                    sx={{ fontSize: 12, color: "text.secondary" }}
-                  />
-                  <Typography
-                    variant="caption"
-                    sx={{ fontWeight: 600, fontSize: "0.725rem" }}
-                  >
-                    {task.dueDate}
-                  </Typography>
-                </Box>
+                <TaskDueDate dueDate={task.dueDate} isDark={isDark} />
               )}
 
-              <Tooltip
-                title={isSavedByMe ? "הסר משימה מהשמורות שלי" : "שמור משימה"}
-              >
-                <Button
-                  onPointerDown={handlePointerDown}
-                  onClick={handleToggleSave}
-                  size="small"
-                  startIcon={
-                    isSavedByMe ? (
-                      <BookmarkIcon sx={{ fontSize: 14 }} />
-                    ) : (
-                      <BookmarkBorderIcon sx={{ fontSize: 14 }} />
-                    )
-                  }
-                  sx={{
-                    minWidth: "auto",
-                    p: "3px 8px",
-                    borderRadius: "8px",
-                    fontSize: "0.75rem",
-                    fontWeight: 600,
-                    bgcolor: isSavedByMe
-                      ? isDark
-                        ? "rgba(49, 130, 206, 0.15)"
-                        : "rgba(49, 130, 206, 0.08)"
-                      : "transparent",
-                    color:
-                      isSavedByMe || (task.savedBy && task.savedBy.length > 0)
-                        ? isDark
-                          ? "#63B3ED"
-                          : "#2B6CB0"
-                        : "text.secondary",
-                    "&:hover": {
-                      bgcolor: isDark
-                        ? "rgba(49, 130, 206, 0.25)"
-                        : "rgba(49, 130, 206, 0.12)",
-                    },
-                  }}
-                >
-                  {task.savedBy?.length || 0}
-                </Button>
-              </Tooltip>
+              <TaskComments count={commentsCount} isDark={isDark} />
+
+              <TaskBookmark
+                isSavedByMe={isSavedByMe}
+                savedByCount={task.savedBy?.length || 0}
+                isDark={isDark}
+                onToggleSave={handleToggleSave}
+                onPointerDown={handlePointerDown}
+              />
             </Box>
 
-            {task.assigneeId ? (
-              <Tooltip title={`אחראי: ${assigneeName}`}>
-                <Box component="span" sx={{ display: "inline-flex" }}>
-                  <UserAvatar
-                    user={
-                      assigneeUser || {
-                        displayName: assigneeName,
-                      }
-                    }
-                    size={26}
-                  />
-                </Box>
-              </Tooltip>
-            ) : (
-              <Tooltip title="אין אחראי כרגע">
-                <Box
-                  sx={{
-                    color: "text.disabled",
-                    display: "flex",
-                    p: "4px",
-                    borderRadius: "50%",
-                    bgcolor: isDark
-                      ? "rgba(255,255,255,0.03)"
-                      : "rgba(0,0,0,0.02)",
-                  }}
-                >
-                  <AssignmentIndIcon sx={{ fontSize: 16 }} />
-                </Box>
-              </Tooltip>
-            )}
+            <TaskAssignee
+              assigneeId={task.assigneeId}
+              assigneeName={assigneeName}
+              assigneeUser={assigneeUser}
+              isDark={isDark}
+            />
           </Box>
         </CardContent>
       </CardActionArea>
 
+      {/* דיאלוג עריכה */}
       {isOpen && (
         <EditTaskDialog
           open={isOpen}
@@ -441,8 +308,19 @@ function TaskCard({
   );
 }
 
-// ⚡ אופטימיזציה ממוקדת להשוואת פרופס מדויקת ב-React.memo
+// ⚡ אופטימיזציה מקסימלית: בדיקת Props חכמה שמבטיחה עדכון צבעים ונתונים מידי
 export default memo(TaskCard, (prevProps, nextProps) => {
+  const isSavedByEqual =
+    prevProps.task.savedBy === nextProps.task.savedBy ||
+    (prevProps.task.savedBy?.length === nextProps.task.savedBy?.length &&
+      prevProps.task.savedBy?.every(
+        (val, idx) => val === nextProps.task.savedBy?.[idx],
+      ));
+
+  const isCommentsEqual =
+    prevProps.task.comments === nextProps.task.comments ||
+    prevProps.task.comments?.length === nextProps.task.comments?.length;
+
   return (
     prevProps.isDragging === nextProps.isDragging &&
     prevProps.borderColor === nextProps.borderColor &&
@@ -452,7 +330,8 @@ export default memo(TaskCard, (prevProps, nextProps) => {
     prevProps.task.dueDate === nextProps.task.dueDate &&
     prevProps.task.assigneeId === nextProps.task.assigneeId &&
     prevProps.task.columnId === nextProps.task.columnId &&
-    prevProps.task.savedBy?.length === nextProps.task.savedBy?.length &&
+    isSavedByEqual &&
+    isCommentsEqual &&
     prevProps.columns === nextProps.columns
   );
 });

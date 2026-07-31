@@ -5,7 +5,6 @@ import { UserMenu } from "./UserAvatarMenu";
 
 export interface HeaderAvatarProps {
   size?: number;
-  onOpenSettings?: () => void;
   onLogout?: () => void;
   onUpdateProfile?: (data: {
     displayName: string;
@@ -16,7 +15,6 @@ export interface HeaderAvatarProps {
 
 export function HeaderAvatar({
   size = 40,
-  onOpenSettings,
   onLogout,
   onUpdateProfile: customUpdateProfile,
 }: HeaderAvatarProps) {
@@ -47,7 +45,6 @@ export function HeaderAvatar({
         open={isMenuOpen}
         onClose={handleMenuClose}
         user={user}
-        onOpenSettings={onOpenSettings}
         onLogout={onLogout}
         onUpdateProfile={activeUpdateProfile}
       />

@@ -9,7 +9,7 @@ import { KanbanBoardContainer } from "../features/Board/components/KanbanBoard/K
 import { useUser } from "../features/User/hooks/useUser";
 import { useBoards } from "../features/Board/hooks/useBoards";
 
-// 👈 ייבוא טיפוס הפילטרים מההוק
+// ייבוא טיפוס הפילטרים מההוק
 import type { FilterOptions } from "../features/Task/hooks/useTaskFilters";
 
 export default function KanbanPreview() {
@@ -28,16 +28,24 @@ export default function KanbanPreview() {
     boards,
     activeBoardId,
     setActiveBoardId,
-    toggleBoardPrivacy,
     deleteBoard,
     loading: loadingBoards,
     error: errorBoards,
   } = useBoards(userId);
 
-  // 🟢 אופטימיזציה: מציאת הלוח הפעיל רק כשצריך
-  const activeBoard = useMemo(
-    () => boards.find((b) => b.id === activeBoardId),
-    [boards, activeBoardId],
+  // ⚡ 2. אופטימיזציה: יצירת מילון שליפה מהיר O(1) לספירת עמודות
+  const columnCountMap = useMemo(() => {
+    const map = new Map<string, number>();
+    boards.forEach((board) => {
+      map.set(board.id, board.columnCount || 0);
+    });
+    return map;
+  }, [boards]);
+
+  // שליפת כמות העמודות ב-O(1) ללא סריקת המערך מחדש בכל טאב
+  const getColumnCount = useCallback(
+    (bId: string) => columnCountMap.get(bId) || 0,
+    [columnCountMap],
   );
 
   // 🟢 אופטימיזציה: useCallback למניעת רנדורים מיותרים של פאנל השליטה
@@ -47,17 +55,6 @@ export default function KanbanPreview() {
     },
     [setActiveBoardId],
   );
-
-  const getColumnCount = useCallback(
-    (bId: string) => boards.find((b) => b.id === bId)?.columnCount || 0,
-    [boards],
-  );
-
-  const handleTogglePrivacy = useCallback(() => {
-    if (activeBoardId) {
-      toggleBoardPrivacy(activeBoardId, activeBoard?.isPublic ?? false);
-    }
-  }, [activeBoardId, activeBoard?.isPublic, toggleBoardPrivacy]);
 
   // טעינה
   if (loadingUser || loadingBoards) {
@@ -75,6 +72,7 @@ export default function KanbanPreview() {
     );
   }
 
+  // שגיאה
   if (errorBoards) {
     return (
       <Box sx={{ p: 4 }}>
@@ -85,7 +83,7 @@ export default function KanbanPreview() {
 
   return (
     <Box sx={{ p: { xs: 2, md: 4 }, minHeight: "100vh" }}>
-      {/* פאנל שליטה - מקבל את ה-filters וה-setFilters */}
+      {/* פאנל שליטה */}
       <BoardControlsPanel
         boards={boards}
         activeBoardId={activeBoardId || ""}
@@ -96,14 +94,12 @@ export default function KanbanPreview() {
         setFilters={setFilters}
       />
 
-      {/* תצוגה ראשית של הלוח הפעיל - 🌟 עכשיו מקבלת גם את filters! */}
+      {/* תצוגה ראשית של הלוח הפעיל */}
       {activeBoardId ? (
         <KanbanBoardContainer
           boardId={activeBoardId}
-          isPublic={activeBoard?.isPublic ?? false}
-          onTogglePrivacy={handleTogglePrivacy}
           userId={userId}
-          filters={filters} // 👈 השלמת החוליה החסרה!
+          filters={filters}
         />
       ) : (
         <Box
