@@ -7,7 +7,6 @@ function Main({ children }: { children: ReactNode }) {
       component="main"
       sx={{
         bgcolor: "background.default",
-        padding: 2,
       }}
     >
       {children}
