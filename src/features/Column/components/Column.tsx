@@ -14,7 +14,6 @@ import type { Task } from "../../Task/models/Task";
 // Hooks
 import { useColumns } from "../hooks/useColumns";
 
-// ⚡ מיפוי צבעים לפי ערכת הנושא של העמודה (תמיכה במצב בהיר וכהה)
 // ⚡ מיפוי מורחב ועשיר של צבעים לעמודות
 const columnThemeMap: Record<
   ColumnTheme,
@@ -56,7 +55,6 @@ const columnThemeMap: Record<
     darkBg: "rgba(100, 116, 139, 0.07)",
     border: "rgba(100, 116, 139, 0.2)",
   },
-  // 🌟 צבעים חדשים ומגניבים שנוספו:
   cyan: {
     main: "#06b6d4",
     lightBg: "rgba(6, 182, 212, 0.03)",
@@ -94,30 +92,43 @@ interface ColumnProps {
   tasks: Task[];
   columns: ColumnType[];
   onOpenAddTaskModal?: (columnId: string) => void;
+  canEdit?: boolean; // 👈 מקבל את הרשאת העריכה (ברירת מחדל: false)
 }
 
-function Column({ tasks, columns, column, onOpenAddTaskModal }: ColumnProps) {
-  const { ref, isDropTarget } = useDroppable({ id: column.id });
+function Column({
+  tasks,
+  columns,
+  column,
+  onOpenAddTaskModal,
+  canEdit = false,
+}: ColumnProps) {
+  // 🚫 המנעות מחיבור לדרג/דרופ במידה ואין הרשאת עריכה
+  const { ref, isDropTarget } = useDroppable({
+    id: column.id,
+    disabled: !canEdit,
+  });
+
   const { updateColumn, deleteColumn } = useColumns(column.boardId);
 
   // State לפתיחת וסגירת הדיאלוג
   const [isAddTaskOpen, setIsAddTaskOpen] = useState(false);
 
-  // ⚡ אופטימיזציה: שליפת צבעי הנושא של העמודה ב-useMemo למניעת חישוב חוזר
+  // ⚡ אופטימיזציה: שליפת צבעי הנושא של העמודה
   const themeColors = useMemo(() => {
     return columnThemeMap[column.theme] || columnThemeMap.blue;
   }, [column.theme]);
 
-  // ⚡ אופטימיזציה: היינדלרים מיוצבים למניעת רנדורים מיותרים ברכיבי בנות
+  // ⚡ היינדלרים
   const handleAddTask = useCallback(
     (columnId: string) => {
+      if (!canEdit) return;
       if (onOpenAddTaskModal) {
         onOpenAddTaskModal(columnId);
       } else {
         setIsAddTaskOpen(true);
       }
     },
-    [onOpenAddTaskModal],
+    [canEdit, onOpenAddTaskModal],
   );
 
   const handleCloseAddTask = useCallback(() => {
@@ -126,9 +137,10 @@ function Column({ tasks, columns, column, onOpenAddTaskModal }: ColumnProps) {
 
   const handleThemeChange = useCallback(
     async (columnId: string, theme: ColumnTheme) => {
+      if (!canEdit) return;
       await updateColumn(columnId, { theme });
     },
-    [updateColumn],
+    [canEdit, updateColumn],
   );
 
   return (
@@ -138,15 +150,14 @@ function Column({ tasks, columns, column, onOpenAddTaskModal }: ColumnProps) {
         sx={{
           minWidth: 290,
           maxWidth: 320,
-          height: "100%", // לוקח את גובה המכולה
+          height: "100%",
           maxHeight: "calc(100vh - 180px)",
           display: "flex",
           flexDirection: "column",
           flexShrink: 0,
-          overflow: "hidden", // קוטם משימות מלגלוש החוצה
+          overflow: "hidden",
           borderRadius: "16px",
           border: "1px solid",
-          // צביעת הרקע והגבול בהתאם לנושא של העמודה
           borderColor: isDropTarget ? themeColors.main : themeColors.border,
           bgcolor: (theme) =>
             theme.palette.mode === "dark"
@@ -163,18 +174,27 @@ function Column({ tasks, columns, column, onOpenAddTaskModal }: ColumnProps) {
           onDeleteColumn={deleteColumn}
           onAddTask={handleAddTask}
           onThemeChange={handleThemeChange}
+          canEdit={canEdit} // 👈 שרשור ל-ColumnHeader
         />
 
-        <ColumnDropZone dropRef={ref} tasks={tasks} columns={columns} />
+        <ColumnDropZone
+          dropRef={ref}
+          tasks={tasks}
+          columns={columns}
+          canEdit={canEdit} // 👈 שרשור ל-ColumnDropZone (להעברה לכרטיסי המשימה)
+        />
       </Paper>
 
-      <CreateTaskDialog
-        open={isAddTaskOpen}
-        onClose={handleCloseAddTask}
-        columns={columns}
-        defaultColumnId={column.id}
-        boardId={column.boardId}
-      />
+      {/* דיאלוג יפתח רק אם קיימת הרשאת עריכה */}
+      {canEdit && (
+        <CreateTaskDialog
+          open={isAddTaskOpen}
+          onClose={handleCloseAddTask}
+          columns={columns}
+          defaultColumnId={column.id}
+          boardId={column.boardId}
+        />
+      )}
     </>
   );
 }

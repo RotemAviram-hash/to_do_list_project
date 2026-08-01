@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -12,6 +13,7 @@ import type { Task } from "../models/Task";
 import { TaskForm } from "./TaskForm";
 import { useTasks } from "../hooks/useTasks";
 import { useUsers } from "../../User/hooks/useUsers";
+import { useBoards } from "../../Board/hooks/useBoards";
 
 interface EditTaskDialogProps {
   open: boolean;
@@ -26,8 +28,25 @@ export function EditTaskDialog({
   task,
   columns,
 }: EditTaskDialogProps) {
-  const { updateTask } = useTasks();
+  const { updateTask } = useTasks(task.boardId);
   const { users } = useUsers();
+  const { boards } = useBoards();
+
+  // ⚡ סינון חברי הלוח + שמירה על ה-Assignee הקיים
+  const boardMemberUsers = useMemo(() => {
+    const currentBoard = boards.find((b) => b.id === task.boardId);
+    if (
+      !currentBoard?.members ||
+      Object.keys(currentBoard.members).length === 0
+    ) {
+      return users; // Fallback
+    }
+
+    return users.filter(
+      (u) => u.id in currentBoard.members! || u.id === task.assigneeId,
+    );
+  }, [users, boards, task.boardId, task.assigneeId]);
+
   return (
     <Dialog
       open={open}
@@ -88,7 +107,7 @@ export function EditTaskDialog({
       </DialogTitle>
 
       <TaskForm
-        key={task.id} // 👈 מבטיח עדכון משימות חלק ושמירה על התוכן באנימציית הסגירה
+        key={task.id}
         initialValues={task}
         columns={columns}
         onSubmit={(data) => {
@@ -98,7 +117,7 @@ export function EditTaskDialog({
         onClose={onClose}
         submitLabel="שמור שינויים"
         isEdit={true}
-        users={users}
+        users={boardMemberUsers}
       />
     </Dialog>
   );

@@ -4,15 +4,16 @@ import { Box, CircularProgress, Alert } from "@mui/material";
 // Components
 import { BoardControlsPanel } from "../features/Board/components/BoardControlsPanel/BoardControlsPanel";
 import { KanbanBoardContainer } from "../features/Board/components/KanbanBoard/KanbanBoardContainer";
-import { EmptyBoardsState } from "../features/Board/components/KanbanBoard/EmptyBoardsState"; // 👈 ייבוא הקומפוננטה החדשה
-import { CreateBoardDialog } from "../features/Board/dialogs/CreateBoardDialog"; // 👈 דיאלוג ליצירת לוח (בהתאם לנתיב בפרויקט)
+import { EmptyBoardsState } from "../features/Board/components/KanbanBoard/EmptyBoardsState";
+import { CreateBoardDialog } from "../features/Board/dialogs/CreateBoardDialog";
 
 // Custom Hooks & Context
 import { useUser } from "../features/User/hooks/useUser";
 import { useBoards } from "../features/Board/hooks/useBoards";
 
-// ייבוא טיפוס הפילטרים מההוק
+// Models & Types
 import type { FilterOptions } from "../features/Task/hooks/useTaskFilters";
+import type { BoardMemberRole } from "../features/Board/models/Board";
 
 export default function KanbanPreview() {
   const { user, loading: loadingUser } = useUser();
@@ -45,6 +46,22 @@ export default function KanbanPreview() {
     loading: loadingBoards,
     error: errorBoards,
   } = useBoards(userId);
+
+  // 👑 מציאת הלוח הפעיל מתוך רשימת הלוחות
+  const currentBoard = useMemo(() => {
+    return boards.find((b) => b.id === activeBoardId) || null;
+  }, [boards, activeBoardId]);
+
+  // 🛡️ חישוב הרשאת המשתמש בלוח הפעיל
+  const userRole = useMemo<BoardMemberRole>(() => {
+    if (!currentBoard || !userId) return "viewer";
+    if (currentBoard.createdBy === userId) return "owner";
+    return currentBoard.members?.[userId] || "viewer";
+  }, [currentBoard, userId]);
+
+  // 🚩 דגלי הרשאות מרכזיים להעברה לרכיבי ה-UI
+  const isOwner = userRole === "owner";
+  const canEdit = isOwner || userRole === "editor"; // CRUD (יצירה, עריכה, מחיקה) מורשה רק ל-Owner ו-Editor
 
   // ⚡ אופטימיזציה: יצירת מילון שליפה מהיר O(1) לספירת עמודות
   const columnCountMap = useMemo(() => {
@@ -96,7 +113,7 @@ export default function KanbanPreview() {
 
   return (
     <Box sx={{ p: { xs: 2, md: 4 }, minHeight: "100vh" }}>
-      {/* פאנל שליטה (יוצג רק אם יש לוחות, או תמיד לפי העדפה) */}
+      {/* פאנל שליטה */}
       {boards.length > 0 && (
         <BoardControlsPanel
           boards={boards}
@@ -115,13 +132,14 @@ export default function KanbanPreview() {
           boardId={activeBoardId}
           userId={userId}
           filters={filters}
+          isOwner={isOwner} // 👈 דגל ראשון: האם המשתמש בעלי הלוח (מורשה לשתף/למחוק לוח)
+          canEdit={canEdit} // 👈 דגל שני: האם המשתמש מורשה ל-CRUD (עריכה/גרירה/הוספה)
         />
       ) : (
-        /* 🌟 הנה השינוי המרכזי: קומפוננטת המצב הריק המעוצבת */
         <EmptyBoardsState onCreateBoard={handleOpenCreateBoard} />
       )}
 
-      {/* 🌟 דיאלוג ליצירת לוח חדש שמתופעל מהכפתור ב-EmptyState */}
+      {/* דיאלוג ליצירת לוח חדש */}
       <CreateBoardDialog
         open={isCreateBoardOpen}
         onClose={handleCloseCreateBoard}

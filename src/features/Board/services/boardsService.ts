@@ -1,5 +1,5 @@
 import * as boardRepo from "../repositories/boardRepositoryFirebase";
-import type { Board } from "../models/Board";
+import type { Board, BoardMemberRole } from "../models/Board";
 
 /**
  * 1. הרשמה לקבלת הלוחות בזמן אמת (ממוינים מהחדש לישן)
@@ -89,6 +89,42 @@ export const updateBoardPrivacy = async (
     throw new Error("חובה לספק ID לעדכון פרטיות הלוח");
   }
 
-  // עושים שימוש חוזר ב-editBoard כדי לקבל גם ולידציות וגם עדכון אוטומטי של updatedAt
   return await editBoard(id, { isPublic });
+};
+
+/**
+ * 6. הוספת / עדכון משתמש בלוח (שיתוף לוח)
+ */
+export const addMemberToBoard = async (
+  boardId: string,
+  targetUserId: string,
+  role: BoardMemberRole = "editor",
+): Promise<void> => {
+  if (!boardId) {
+    throw new Error("חובה לספק ID של הלוח");
+  }
+
+  if (!targetUserId) {
+    throw new Error("חובה לספק ID של המשתמש להוספה");
+  }
+
+  return await boardRepo.addMemberToBoardRepo(boardId, targetUserId, role);
+};
+
+/**
+ * 7. הסרת משתמש מלוח
+ */
+export const removeMemberFromBoard = async (
+  boardId: string,
+  targetUserId: string,
+): Promise<void> => {
+  if (!boardId) {
+    throw new Error("חובה לספק ID של הלוח");
+  }
+
+  if (!targetUserId) {
+    throw new Error("חובה לספק ID של המשתמש להסרה");
+  }
+
+  return await boardRepo.removeMemberFromBoardRepo(boardId, targetUserId);
 };

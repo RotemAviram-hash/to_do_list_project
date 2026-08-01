@@ -2,20 +2,20 @@ import * as taskRepo from "../repositories/taskRepositoryFirebase";
 import type { Task } from "../models/Task";
 
 /**
- * 1. הרשמה לקבלת המשימות של משתמש בזמן אמת
+ * 1. הרשמה לקבלת המשימות של לוח בזמן אמת
  */
 export const listenToTasks = (
-  userId: string,
+  boardId: string, // 👈 מעבירים boardId
   onTasksChange: (tasks: Task[]) => void,
   onError?: (error: Error) => void,
 ) => {
-  if (!userId) {
+  if (!boardId) {
     onTasksChange([]);
     return () => {};
   }
 
   return taskRepo.subscribeToTasksRepo(
-    userId,
+    boardId,
     (tasks) => {
       const sortedTasks = [...tasks].sort((a, b) => {
         if (!a.dueDate) return 1;

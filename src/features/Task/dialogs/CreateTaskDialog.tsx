@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -12,6 +13,7 @@ import type { Task } from "../models/Task";
 import { TaskForm } from "./TaskForm";
 import { useTasks } from "../hooks/useTasks";
 import { useUsers } from "../../User/hooks/useUsers";
+import { useBoards } from "../../Board/hooks/useBoards";
 
 interface CreateTaskDialogProps {
   open: boolean;
@@ -30,16 +32,28 @@ export function CreateTaskDialog({
   boardId,
   defaultColumnId,
 }: CreateTaskDialogProps) {
-  const { users } = useUsers(); //
-  const { addTask } = useTasks();
+  const { users } = useUsers();
+  const { boards } = useBoards();
 
-  // 🟢 1. מציאת העמודה הנבחרת ע"י המרה בטוחה ל-String
   const selectedColumn =
     columns.find((c) => String(c.id) === String(defaultColumnId)) || columns[0];
 
   const effectiveBoardId = boardId || selectedColumn?.boardId || "";
 
-  // 🟢 2. ערכי ברירת המחדל עם ה-columnId שנמצא
+  const { addTask } = useTasks(effectiveBoardId);
+
+  // ⚡ סינון המשתמשים לפי חברי הלוח (Members) בפורמט Record
+  const boardMemberUsers = useMemo(() => {
+    const currentBoard = boards.find((b) => b.id === effectiveBoardId);
+    if (
+      !currentBoard?.members ||
+      Object.keys(currentBoard.members).length === 0
+    ) {
+      return users; // Fallback אם לא מוגדרים members בלוח
+    }
+    return users.filter((user) => user.id in currentBoard.members!);
+  }, [users, boards, effectiveBoardId]);
+
   const defaultValues: Task = {
     id: "",
     title: "",
@@ -51,15 +65,15 @@ export function CreateTaskDialog({
     assigneeId: "",
     savedBy: [],
     createdAt: new Date().toISOString(),
-    order: 0,
   };
 
   const handleSubmit = async (data: Task) => {
     try {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { id, ...taskWithoutId } = data;
-      await addTask(taskWithoutId as any);
+      await addTask(taskWithoutId as Omit<Task, "id">);
       onClose();
-    } catch (err) {
+    } catch (err: unknown) {
       console.error("שגיאה ביצירת משימה:", err);
     }
   };
@@ -124,7 +138,6 @@ export function CreateTaskDialog({
       </DialogTitle>
 
       <TaskForm
-        // 🟢 key מורכב שמבטיח איפוס מחדש של הטופס בכל שינוי של defaultColumnId
         key={open ? `open-${selectedColumn?.id || "default"}` : "closed"}
         initialValues={defaultValues}
         columns={columns}
@@ -132,7 +145,7 @@ export function CreateTaskDialog({
         onClose={onClose}
         submitLabel="צור משימה"
         isEdit={false}
-        users={users}
+        users={boardMemberUsers}
       />
     </Dialog>
   );

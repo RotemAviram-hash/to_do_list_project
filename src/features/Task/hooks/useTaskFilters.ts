@@ -7,9 +7,26 @@ export interface FilterOptions {
   showOnlyMine?: boolean;
 }
 
+// ממשק עזר לטיפול במקרים שבהם המזהה מגיע כאובייקט
+interface EntityWithId {
+  id?: string;
+  _id?: string;
+}
+
+const extractId = (val: unknown): string => {
+  if (typeof val === "string") {
+    return val.trim();
+  }
+  if (typeof val === "object" && val !== null) {
+    const entity = val as EntityWithId;
+    return (entity.id || entity._id || "").trim();
+  }
+  return "";
+};
+
 export function useTaskFilters(
   tasks: Task[] = [],
-  currentUserId: string = "",
+  currentUserId: unknown = "",
   filters: FilterOptions = {},
 ) {
   const {
@@ -20,8 +37,7 @@ export function useTaskFilters(
 
   // ⚡ 1. חילוץ ונרמול מזהה המשתמש מחוץ ל-useMemo כדי להבטיח ערך פרימיטיבי יציב
   const cleanUserId = useMemo(() => {
-    if (typeof currentUserId === "string") return currentUserId.trim();
-    return (currentUserId as any)?.id || (currentUserId as any)?._id || "";
+    return extractId(currentUserId);
   }, [currentUserId]);
 
   const filteredTasks = useMemo(() => {
@@ -50,12 +66,9 @@ export function useTaskFilters(
         if (!cleanUserId) return false;
 
         const savedByArray = Array.isArray(task.savedBy) ? task.savedBy : [];
-        const isSaved = savedByArray.some((item: any) => {
-          if (typeof item === "string") return item.trim() === cleanUserId;
-          if (typeof item === "object" && item !== null) {
-            return (item.id || item._id) === cleanUserId;
-          }
-          return false;
+        const isSaved = savedByArray.some((item: unknown) => {
+          const itemId = extractId(item);
+          return itemId === cleanUserId;
         });
 
         if (!isSaved) return false;
@@ -65,15 +78,8 @@ export function useTaskFilters(
       if (showOnlyMine) {
         if (!cleanUserId) return false;
 
-        const assigneeId =
-          typeof task.assigneeId === "object" && task.assigneeId !== null
-            ? (task.assigneeId as any).id || (task.assigneeId as any)._id
-            : String(task.assigneeId || "").trim();
-
-        const createdBy =
-          typeof task.createdBy === "object" && task.createdBy !== null
-            ? (task.createdBy as any).id || (task.createdBy as any)._id
-            : String(task.createdBy || "").trim();
+        const assigneeId = extractId(task.assigneeId);
+        const createdBy = extractId(task.createdBy);
 
         const isMine = assigneeId === cleanUserId || createdBy === cleanUserId;
         if (!isMine) return false;

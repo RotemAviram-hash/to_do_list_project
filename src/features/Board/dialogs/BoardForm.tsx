@@ -5,12 +5,9 @@ import {
   DialogActions,
   DialogContent,
   InputAdornment,
-  FormControlLabel,
-  Checkbox,
 } from "@mui/material";
 import TitleIcon from "@mui/icons-material/Title";
 import DescriptionIcon from "@mui/icons-material/Description";
-import PublicIcon from "@mui/icons-material/Public";
 import SaveIcon from "@mui/icons-material/Save";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import { useForm, Controller } from "react-hook-form";
@@ -116,26 +113,6 @@ export function BoardForm({
                     sx: { borderRadius: "12px" },
                   },
                 }}
-              />
-            )}
-          />
-
-          {/* 3. לוח ציבורי (isPublic) */}
-          <Controller
-            name="isPublic"
-            control={control}
-            render={({ field }) => (
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={!!field.value}
-                    onChange={(e) => field.onChange(e.target.checked)}
-                    icon={<PublicIcon color="disabled" />}
-                    checkedIcon={<PublicIcon color="primary" />}
-                  />
-                }
-                label="לוח ציבורי (גלוי לכל משתמשי המערכת)"
-                sx={{ ml: 0 }}
               />
             )}
           />

@@ -1,3 +1,4 @@
+// src/features/Board/repositories/boardRepositoryFirebase.ts
 import {
   collection,
   doc,
@@ -8,19 +9,23 @@ import {
   onSnapshot,
   query,
   where,
-  type Unsubscribe,
-  QuerySnapshot,
-  type DocumentData,
+  or,
+  arrayUnion,
+  arrayRemove,
+  deleteField,
   increment,
+  type Unsubscribe,
+  type QuerySnapshot,
+  type DocumentData,
 } from "firebase/firestore";
 import { db } from "../../../config/firebase";
-import type { Board } from "../models/Board";
+import type { Board, BoardMemberRole } from "../models/Board";
 
 const BOARDS_COLLECTION = "boards";
 const boardsCollectionRef = collection(db, BOARDS_COLLECTION);
 
 /**
- * 1. הרשמה לקבלת הלוחות בזמן אמת (עם תמיכה אופציונלית בסינון לפי userId)
+ * 1. הרשמה לקבלת הלוחות בזמן אמת (נוצרו ע"י המשתמש OR שהוא חבר בהם)
  */
 export const subscribeToBoardsRepo = (
   onUpdate: (boards: Board[]) => void,
@@ -30,7 +35,13 @@ export const subscribeToBoardsRepo = (
   let q = query(boardsCollectionRef);
 
   if (userId) {
-    q = query(boardsCollectionRef, where("createdBy", "==", userId));
+    q = query(
+      boardsCollectionRef,
+      or(
+        where("createdBy", "==", userId),
+        where("memberIds", "array-contains", userId),
+      ),
+    );
   }
 
   return onSnapshot(
@@ -78,13 +89,41 @@ export const getBoardByIdRepo = async (id: string): Promise<Board | null> => {
 export const addBoardRepo = async (
   boardData: Omit<Board, "id">,
 ): Promise<string> => {
-  try {
-    const docRef = await addDoc(boardsCollectionRef, boardData);
-    return docRef.id;
-  } catch (error) {
-    console.error("Error adding board to DB:", error);
-    throw error;
+  // ניקוי ושליפת מזהה ה יוצר
+  const creatorId = boardData.createdBy?.trim();
+
+  // 1. יצירת אובייקט members חדש ונקי
+  const initialMembers: Record<string, BoardMemberRole> = {
+    ...(boardData.members || {}),
+  };
+
+  // 2. הבטחה שיוצר הלוח רשום מפורשות כ-owner בלבד אם ה-ID תקין
+  if (creatorId) {
+    initialMembers[creatorId] = "owner";
+  } else {
+    console.warn("⚠️ addBoardRepo: createdBy is missing or empty.");
   }
+
+  // 3. יצירת מערך memberIds ייחודי
+  const initialMemberIds = Array.from(
+    new Set([
+      ...(boardData.memberIds || []),
+      ...(creatorId ? [creatorId] : []),
+    ]),
+  );
+
+  // 4. ניקוי שדות undefined מכלל האובייקט
+  const cleanBoardData = Object.fromEntries(
+    Object.entries({
+      ...boardData,
+      members: initialMembers,
+      memberIds: initialMemberIds,
+    }).filter(([_, value]) => value !== undefined),
+  );
+
+  // 5. שמירה ב-Firestore
+  const docRef = await addDoc(boardsCollectionRef, cleanBoardData);
+  return docRef.id;
 };
 
 /**
@@ -124,7 +163,7 @@ export const deleteBoardRepo = async (id: string): Promise<void> => {
 };
 
 /**
- * 6. 🟢 עדכון אטומי של ספירת העמודות בלוח (+1 או -1)
+ * 6. עדכון אטומי של ספירת העמודות בלוח (+1 או -1)
  */
 export const incrementColumnCountRepo = async (
   boardId: string,
@@ -137,6 +176,55 @@ export const incrementColumnCountRepo = async (
     });
   } catch (error) {
     console.error(`Error updating column count for board ${boardId}:`, error);
+    throw error;
+  }
+};
+
+/**
+ * 7. הוספת / עדכון משתמש בלוח (כולל הגדרת תפקיד)
+ */
+export const addMemberToBoardRepo = async (
+  boardId: string,
+  targetUserId: string,
+  role: BoardMemberRole = "editor",
+): Promise<void> => {
+  try {
+    const boardDocRef = doc(db, BOARDS_COLLECTION, boardId);
+
+    await updateDoc(boardDocRef, {
+      memberIds: arrayUnion(targetUserId),
+      [`members.${targetUserId}`]: role || "editor",
+      updatedAt: new Date().toISOString(),
+    });
+  } catch (error) {
+    console.error(
+      `Error adding member ${targetUserId} to board ${boardId}:`,
+      error,
+    );
+    throw error;
+  }
+};
+
+/**
+ * 8. הסרת משתמש מלוח
+ */
+export const removeMemberFromBoardRepo = async (
+  boardId: string,
+  targetUserId: string,
+): Promise<void> => {
+  try {
+    const boardDocRef = doc(db, BOARDS_COLLECTION, boardId);
+
+    await updateDoc(boardDocRef, {
+      memberIds: arrayRemove(targetUserId),
+      [`members.${targetUserId}`]: deleteField(),
+      updatedAt: new Date().toISOString(),
+    });
+  } catch (error) {
+    console.error(
+      `Error removing member ${targetUserId} from board ${boardId}:`,
+      error,
+    );
     throw error;
   }
 };

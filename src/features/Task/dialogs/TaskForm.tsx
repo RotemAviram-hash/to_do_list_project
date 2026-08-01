@@ -42,7 +42,6 @@ const taskSchema = Joi.object<Task>({
   assigneeId: Joi.string().allow(""),
   dueDate: Joi.string().allow(""),
   boardId: Joi.string().allow(""),
-  order: Joi.number().optional(),
   createdAt: Joi.string().allow(""),
   createdBy: Joi.string().allow(""),
 }).unknown(true);

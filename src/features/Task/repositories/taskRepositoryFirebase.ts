@@ -8,7 +8,6 @@ import {
   onSnapshot,
   query,
   where,
-  or,
   type Unsubscribe,
   QuerySnapshot,
   type DocumentData,
@@ -20,19 +19,20 @@ const TASKS_COLLECTION = "tasks";
 const tasksCollectionRef = collection(db, TASKS_COLLECTION);
 
 /**
- * 1. הרשמה לקבלת עדכונים בזמן אמת למשתמש ספציפי
+ * 1. הרשמה לקבלת עדכונים בזמן אמת ללוח ספציפי
  */
 export const subscribeToTasksRepo = (
-  userId: string,
+  boardId: string, // 👈 שוני: מקבלים boardId במקום userId
   onUpdate: (tasks: Task[]) => void,
   onError?: (error: Error) => void,
 ): Unsubscribe => {
-  // שאילתה שמסננת משימות שהמשתמש יצר או משויך אליהן
-  // (ניתן להתאים את התנאי לפי המבנה המדויק ב-Firestore, למשל where("userId", "==", userId))
-  const q = query(
-    tasksCollectionRef,
-    or(where("createdBy", "==", userId), where("assigneeId", "==", userId)),
-  );
+  if (!boardId) {
+    onUpdate([]);
+    return () => {};
+  }
+
+  // ⚡ שאילתה שמביאה את כל המשימות ששייכות ללוח הזה!
+  const q = query(tasksCollectionRef, where("boardId", "==", boardId));
 
   return onSnapshot(
     q,
@@ -45,12 +45,11 @@ export const subscribeToTasksRepo = (
       onUpdate(tasks);
     },
     (error) => {
-      console.error("Error listening to user tasks collection:", error);
+      console.error("Error listening to board tasks collection:", error);
       if (onError) onError(error);
     },
   );
 };
-
 /**
  * 2. שליפת משימה בודדת לפי ID
  */

@@ -1,23 +1,25 @@
+// src/features/Board/components/BoardColumnsList.tsx
 import React, { useMemo } from "react";
-import { Box, Typography, Button, Paper, alpha, useTheme } from "@mui/material";
-import ViewColumnRoundedIcon from "@mui/icons-material/ViewColumnRounded";
+import { Box, Button, Typography, alpha, useTheme } from "@mui/material";
 import AddRoundedIcon from "@mui/icons-material/AddRounded";
+import ViewColumnOutlinedIcon from "@mui/icons-material/ViewColumnOutlined";
+
+import Column from "../../../Column/components/Column";
 import type { Column as ColumnType } from "../../../Column/models/Column";
 import type { Task } from "../../../Task/models/Task";
-import Column from "../../../Column/components/Column";
 
-interface BoardColumnsListProps {
+export interface BoardColumnsListProps {
   columns: ColumnType[];
   tasks: Task[];
   onAddColumn?: () => void;
+  canEdit?: boolean; // 👈 הרשאת עריכה (הוספה/מחיקה/גרירה)
 }
 
 export const BoardColumnsList: React.FC<BoardColumnsListProps> = React.memo(
-  ({ columns, tasks, onAddColumn }) => {
+  ({ columns, tasks, onAddColumn, canEdit = false }) => {
     const theme = useTheme();
     const isDark = theme.palette.mode === "dark";
 
-    // ⚡ אופטימיזציה: מילון משימות לפי columnId בסיבוכיות O(N)
     const tasksByColumnMap = useMemo(() => {
       const map: Record<string, Task[]> = {};
       for (const task of tasks) {
@@ -29,68 +31,60 @@ export const BoardColumnsList: React.FC<BoardColumnsListProps> = React.memo(
       return map;
     }, [tasks]);
 
-    // 🌟 מצב ריק (Empty State) במידה ואין עמודות בלוח
+    // 🧱 מקרה שבו הלוח ריק מעמודות
     if (columns.length === 0) {
       return (
-        <Paper
-          variant="outlined"
+        <Box
           sx={{
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
             justifyContent: "center",
             p: 5,
-            my: 3,
+            my: 4,
             borderRadius: "16px",
-            borderStyle: "dashed",
-            borderWidth: "2px",
-            borderColor: alpha(theme.palette.divider, 0.8),
-            bgcolor: isDark
-              ? alpha(theme.palette.background.paper, 0.4)
-              : alpha(theme.palette.action.hover, 0.3),
+            border: "2px dashed",
+            borderColor: theme.palette.divider,
+            bgcolor: theme.palette.action.hover,
             textAlign: "center",
+            gap: 1.5,
           }}
         >
-          <Box
+          <ViewColumnOutlinedIcon
             sx={{
-              p: 2,
-              borderRadius: "50%",
-              bgcolor: alpha(theme.palette.primary.main, 0.1),
-              color: "primary.main",
-              mb: 2,
-              display: "flex",
+              fontSize: 48,
+              color: theme.palette.text.secondary,
+              opacity: 0.7,
             }}
+          />
+          <Typography
+            variant="h6"
+            sx={{ fontWeight: 600, color: "text.primary" }}
           >
-            <ViewColumnRoundedIcon sx={{ fontSize: 38 }} />
-          </Box>
-          <Typography variant="h6" sx={{ fontWeight: 700 }} gutterBottom>
             אין עמודות בלוח זה עדיין
           </Typography>
           <Typography
             variant="body2"
-            color="text.secondary"
-            sx={{ maxWidth: 360, mb: 3 }}
+            sx={{ color: "text.secondary", maxWidth: 360 }}
           >
-            כדי להתחיל לארגן את המשימות שלך, צור את העמודה הראשונה (כמו
-            "לביצוע", "בתהליך" או "הושלם").
+            {canEdit
+              ? 'לחץ על "עמודה חדשה" כדי להתחיל לארגן את המשימות בלוח.'
+              : "אין עמודות זמינות לצפייה בלוח זה כרגע."}
           </Typography>
-          {onAddColumn && (
+
+          {/* ✏️ כפתור הוספת עמודה - מוצג רק למי שמורשה לערוך */}
+          {canEdit && onAddColumn && (
             <Button
-              variant="contained"
-              startIcon={<AddRoundedIcon />}
+              variant="outlined"
+              size="small"
               onClick={onAddColumn}
-              sx={{
-                borderRadius: "10px",
-                textTransform: "none",
-                fontWeight: 600,
-                px: 3,
-                boxShadow: `0 4px 14px ${alpha(theme.palette.primary.main, 0.35)}`,
-              }}
+              startIcon={<AddRoundedIcon />}
+              sx={{ mt: 1, borderRadius: "10px", fontWeight: 600 }}
             >
-              הוסף עמודה ראשונה
+              הוספת עמודה ראשונה
             </Button>
           )}
-        </Paper>
+        </Box>
       );
     }
 
@@ -102,32 +96,26 @@ export const BoardColumnsList: React.FC<BoardColumnsListProps> = React.memo(
           overflowX: "auto",
           overflowY: "hidden",
           pb: 2,
-          pt: 1,
+          pt: 0.5,
           px: 0.5,
           alignItems: "flex-start",
           flexGrow: 1,
-          scrollBehavior: "smooth",
-
-          // עיצוב פס גלילה מודרני ועדין
-          "&::-webkit-scrollbar": {
-            height: "8px",
-          },
+          width: "100%",
+          "&::-webkit-scrollbar": { height: "8px" },
           "&::-webkit-scrollbar-track": {
-            backgroundColor: isDark
-              ? alpha(theme.palette.common.white, 0.03)
-              : alpha(theme.palette.common.black, 0.03),
-            borderRadius: "8px",
+            backgroundColor: "transparent",
+            borderRadius: "10px",
           },
           "&::-webkit-scrollbar-thumb": {
             backgroundColor: isDark
               ? alpha(theme.palette.common.white, 0.15)
               : alpha(theme.palette.common.black, 0.15),
-            borderRadius: "8px",
-            transition: "background-color 0.2s",
+            borderRadius: "10px",
+            transition: "background-color 0.2s ease",
             "&:hover": {
               backgroundColor: isDark
-                ? alpha(theme.palette.common.white, 0.3)
-                : alpha(theme.palette.common.black, 0.3),
+                ? alpha(theme.palette.common.white, 0.28)
+                : alpha(theme.palette.common.black, 0.28),
             },
           },
         }}
@@ -145,6 +133,7 @@ export const BoardColumnsList: React.FC<BoardColumnsListProps> = React.memo(
               column={column}
               tasks={tasksByColumnMap[column.id] || []}
               columns={columns}
+              canEdit={canEdit} // 👈 שרשור לרכיב Column
             />
           </Box>
         ))}

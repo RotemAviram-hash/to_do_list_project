@@ -7,14 +7,12 @@ import {
   Box,
   Divider,
 } from "@mui/material";
-import { useNavigate } from "react-router-dom";
 
 // הקונטקסטים וההוקים
 import {
   ProjectThemeContext,
   type ThemeContextType,
 } from "../../../providers/ProjectThemeProvider";
-import ROUTES from "../../../router/routes";
 import { useUser } from "../../User/hooks/useUser";
 import { useUsers } from "../../User/hooks/useUsers";
 import type { Column } from "../../Column/models/Column";
@@ -28,13 +26,16 @@ import { TaskActions } from "./TaskActions";
 import { TaskDueDate } from "./TaskDueDate";
 import { TaskBookmark } from "./TaskBookmark";
 import { TaskAssignee } from "./TaskAssignee";
-import { TaskComments } from "./TaskComments";
+
+// הרחבה אופציונלית למבנה העמודה למקרה שלשדה צבע יש שם ישיר
+type ExtendedColumn = Column & { color?: string; theme?: string };
 
 interface TaskCardProps {
   task: Task;
   columns: Column[];
   borderColor?: string;
   isDragging?: boolean;
+  canEdit?: boolean; // 👈 הרשאת עריכה
   cardRef?: (node: HTMLElement | null) => void;
 }
 
@@ -43,38 +44,35 @@ function TaskCard({
   columns,
   borderColor = "#199ed2",
   isDragging = false,
+  canEdit = false,
   cardRef,
 }: TaskCardProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const navigate = useNavigate();
 
   const { isDark } = useContext(ProjectThemeContext) as ThemeContextType;
   const { user } = useUser();
   const { getUserName, usersMap } = useUsers();
-  const { updateTask, deleteTask } = useTasks();
-
+  const { updateTask, deleteTask } = useTasks(task.boardId);
   const currentUserId = user?.id || "";
 
   // ⚡ איתור העמודה הנוכחית
   const currentColumn = useMemo(() => {
-    return columns.find((col) => col.id === task.columnId);
+    return columns.find((col) => col.id === task.columnId) as
+      | ExtendedColumn
+      | undefined;
   }, [columns, task.columnId]);
 
   // ⚡ חילוץ צבע העמודה הישיר והתאמה מיידית
   const activeColor = useMemo(() => {
-    // 1. אם העבירו borderColor מפורש שאינו ברירת המחדל
     if (borderColor && borderColor !== "#199ed2") {
       return borderColor;
     }
-    // 2. אם בעמודה יש שדה color ישיר (כמו Hex code: "#ff0000")
-    if ((currentColumn as any)?.color) {
-      return (currentColumn as any).color;
+    if (currentColumn?.color) {
+      return currentColumn.color;
     }
-    // 3. אם בעמודה יש שדה theme (מתוך מפת המנגנון)
     if (currentColumn?.theme) {
       return THEME_COLOR_MAP[currentColumn.theme]?.main || currentColumn.theme;
     }
-    // 4. ברירת מחדל
     return "#199ed2";
   }, [borderColor, currentColumn]);
 
@@ -82,10 +80,6 @@ function TaskCard({
   const isSavedByMe = useMemo(() => {
     return task.savedBy?.includes(currentUserId) || false;
   }, [task.savedBy, currentUserId]);
-
-  const commentsCount = useMemo(() => {
-    return task.comments?.length || 0;
-  }, [task.comments]);
 
   const assigneeName = useMemo(() => {
     return getUserName(task.assigneeId);
@@ -111,26 +105,26 @@ function TaskCard({
     [currentUserId, task.savedBy, task.id, isSavedByMe, updateTask],
   );
 
-  const handleOpenEdit = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation();
-    setIsOpen(true);
-  }, []);
+  const handleOpenEdit = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      if (!canEdit) return;
+      setIsOpen(true);
+    },
+    [canEdit],
+  );
 
   const handleDeleteTask = useCallback(
     (e: React.MouseEvent) => {
-      e.stopPropagation(); // מונע פתיחה של ה-Modal/Card בטעות
+      e.stopPropagation();
+      if (!canEdit) return;
 
-      // חלון אישור לפני מחיקה
       if (window.confirm(`האם למחוק את המשימה "${task.title || ""}"?`)) {
         deleteTask(task.id);
       }
     },
-    [deleteTask, task.id, task.title], // 👈 הוספת task.title למערך התלויות
+    [canEdit, deleteTask, task.id, task.title],
   );
-
-  const handleNavigate = useCallback(() => {
-    navigate(ROUTES.TASK_PAGE + task.id);
-  }, [navigate, task.id]);
 
   const handleCloseDialog = useCallback(() => {
     setIsOpen(false);
@@ -154,7 +148,7 @@ function TaskCard({
         userSelect: "none",
         width: "100%",
         boxSizing: "border-box",
-        cursor: isDragging ? "grabbing" : "grab",
+        cursor: canEdit ? (isDragging ? "grabbing" : "grab") : "pointer", // 👈 התאמת סמן העכבר
         opacity: isDragging ? 0.5 : 1,
         flexShrink: 0,
         height: "auto",
@@ -191,8 +185,8 @@ function TaskCard({
         }}
       />
 
-      {/* כפתורי פעולות (עריכה ומחיקה) */}
-      {user && (
+      {/* כפתורי פעולות (עריכה ומחיקה - מוצגים רק אם יש הרשאת עריכה ומשתמש מחובר) */}
+      {user && canEdit && (
         <TaskActions
           isDark={isDark}
           onEdit={handleOpenEdit}
@@ -202,11 +196,7 @@ function TaskCard({
       )}
 
       {/* גוף הכרטיס הלחיץ */}
-      <CardActionArea
-        component="div"
-        onClick={handleNavigate}
-        sx={{ borderRadius: "16px" }}
-      >
+      <CardActionArea component="div" sx={{ borderRadius: "16px" }}>
         <CardContent
           sx={{ p: "18px 20px 14px 20px", "&:last-child": { pb: "14px" } }}
         >
@@ -219,7 +209,7 @@ function TaskCard({
               mb: task.description ? 1 : 1.5,
               lineHeight: 1.4,
               pr: 1,
-              pl: user ? 7 : 0,
+              pl: user && canEdit ? 7 : 0, // 👈 התאמת פדינג לפי נוכחות כפתורי הפעולה
               fontSize: "0.95rem",
               display: "-webkit-box",
               WebkitLineClamp: 2,
@@ -274,8 +264,6 @@ function TaskCard({
                 <TaskDueDate dueDate={task.dueDate} isDark={isDark} />
               )}
 
-              <TaskComments count={commentsCount} isDark={isDark} />
-
               <TaskBookmark
                 isSavedByMe={isSavedByMe}
                 savedByCount={task.savedBy?.length || 0}
@@ -295,8 +283,8 @@ function TaskCard({
         </CardContent>
       </CardActionArea>
 
-      {/* דיאלוג עריכה */}
-      {isOpen && (
+      {/* דיאלוג עריכה (נפתח רק במידה ו-canEdit הינו true) */}
+      {isOpen && canEdit && (
         <EditTaskDialog
           open={isOpen}
           onClose={handleCloseDialog}
@@ -308,7 +296,7 @@ function TaskCard({
   );
 }
 
-// ⚡ אופטימיזציה מקסימלית: בדיקת Props חכמה שמבטיחה עדכון צבעים ונתונים מידי
+// ⚡ אופטימיזציה מקסימלית: בדיקת Props חכמה
 export default memo(TaskCard, (prevProps, nextProps) => {
   const isSavedByEqual =
     prevProps.task.savedBy === nextProps.task.savedBy ||
@@ -317,12 +305,9 @@ export default memo(TaskCard, (prevProps, nextProps) => {
         (val, idx) => val === nextProps.task.savedBy?.[idx],
       ));
 
-  const isCommentsEqual =
-    prevProps.task.comments === nextProps.task.comments ||
-    prevProps.task.comments?.length === nextProps.task.comments?.length;
-
   return (
     prevProps.isDragging === nextProps.isDragging &&
+    prevProps.canEdit === nextProps.canEdit && // 👈 בדיקת הרשאת עריכה ב-memo
     prevProps.borderColor === nextProps.borderColor &&
     prevProps.task.id === nextProps.task.id &&
     prevProps.task.title === nextProps.task.title &&
@@ -331,7 +316,6 @@ export default memo(TaskCard, (prevProps, nextProps) => {
     prevProps.task.assigneeId === nextProps.task.assigneeId &&
     prevProps.task.columnId === nextProps.task.columnId &&
     isSavedByEqual &&
-    isCommentsEqual &&
     prevProps.columns === nextProps.columns
   );
 });

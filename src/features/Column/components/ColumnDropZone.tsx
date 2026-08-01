@@ -10,10 +10,11 @@ interface ColumnDropZoneProps {
   tasks: Task[];
   columns: ColumnType[];
   columnTheme?: ColumnTheme;
+  canEdit?: boolean; // 👈 הרשאת עריכה
 }
 
 export const ColumnDropZone: React.FC<ColumnDropZoneProps> = memo(
-  ({ dropRef, tasks, columns }) => {
+  ({ dropRef, tasks, columns, canEdit = false }) => {
     return (
       <Box
         ref={dropRef}
@@ -27,7 +28,7 @@ export const ColumnDropZone: React.FC<ColumnDropZoneProps> = memo(
           gap: 1.75,
           overflowY: "auto",
           position: "relative",
-          bgcolor: "transparent", // הרקע מנוהל כעת ע"י הקומפוננטה האב (Column)
+          bgcolor: "transparent",
           "&::-webkit-scrollbar": { width: "5px" },
           "&::-webkit-scrollbar-track": { background: "transparent" },
           "&::-webkit-scrollbar-thumb": {
@@ -41,7 +42,12 @@ export const ColumnDropZone: React.FC<ColumnDropZoneProps> = memo(
       >
         {tasks.length > 0 ? (
           tasks.map((task) => (
-            <DraggableTaskCard key={task.id} task={task} columns={columns} />
+            <DraggableTaskCard
+              key={task.id}
+              task={task}
+              columns={columns}
+              canEdit={canEdit} // 👈 העברת הרשאת העריכה למשימה
+            />
           ))
         ) : (
           <Box
@@ -61,9 +67,11 @@ export const ColumnDropZone: React.FC<ColumnDropZoneProps> = memo(
                   ? "rgba(255, 255, 255, 0.01)"
                   : "rgba(0, 0, 0, 0.01)",
               transition: "border-color 0.2s ease",
-              "&:hover": {
-                borderColor: "primary.main",
-              },
+              "&:hover": canEdit
+                ? {
+                    borderColor: "primary.main",
+                  }
+                : undefined,
             }}
           >
             <Box
@@ -89,17 +97,19 @@ export const ColumnDropZone: React.FC<ColumnDropZoneProps> = memo(
             >
               אין משימות בעמודה זו
             </Typography>
-            <Typography
-              variant="caption"
-              sx={{
-                textAlign: "center",
-                color: "text.disabled",
-                mt: 0.5,
-                opacity: 0.8,
-              }}
-            >
-              גרור לכאן משימות חדשות
-            </Typography>
+            {canEdit && (
+              <Typography
+                variant="caption"
+                sx={{
+                  textAlign: "center",
+                  color: "text.disabled",
+                  mt: 0.5,
+                  opacity: 0.8,
+                }}
+              >
+                גרור לכאן משימות חדשות
+              </Typography>
+            )}
           </Box>
         )}
       </Box>
@@ -109,7 +119,8 @@ export const ColumnDropZone: React.FC<ColumnDropZoneProps> = memo(
     return (
       prevProps.tasks === nextProps.tasks &&
       prevProps.columns === nextProps.columns &&
-      prevProps.columnTheme === nextProps.columnTheme
+      prevProps.columnTheme === nextProps.columnTheme &&
+      prevProps.canEdit === nextProps.canEdit
     );
   },
 );

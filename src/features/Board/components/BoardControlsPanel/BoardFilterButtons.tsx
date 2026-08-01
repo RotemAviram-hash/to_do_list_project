@@ -1,5 +1,6 @@
 import React, { useCallback } from "react";
 import { Box, Button, alpha } from "@mui/material";
+import type { Theme } from "@mui/material/styles";
 import BookmarkIcon from "@mui/icons-material/Bookmark";
 import BookmarkBorderIcon from "@mui/icons-material/BookmarkBorder";
 import PersonIcon from "@mui/icons-material/Person";
@@ -50,12 +51,12 @@ export const BoardFilterButtons: React.FC<BoardFilterButtonsProps> = React.memo(
       }
     }, [setFilters, onToggleMine, isMineActive]);
 
-    const getButtonSx = (isActive: boolean) => (theme: any) => ({
+    const getButtonSx = (isActive: boolean) => (theme: Theme) => ({
       borderRadius: "10px",
       fontSize: "0.82rem",
       fontWeight: isActive ? 600 : 500,
-      textTransform: "none",
-      whiteSpace: "nowrap",
+      textTransform: "none" as const,
+      whiteSpace: "nowrap" as const,
       px: 1.8,
       py: 0.6,
       color: isActive ? "primary.main" : "text.secondary",

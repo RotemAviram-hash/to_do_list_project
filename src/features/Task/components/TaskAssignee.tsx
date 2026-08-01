@@ -2,11 +2,12 @@ import { memo, useMemo } from "react";
 import { Box, Tooltip } from "@mui/material";
 import AssignmentIndIcon from "@mui/icons-material/AssignmentInd";
 import { UserAvatar } from "../../User/components/UserAvatar";
+import type { UserProfile } from "../../User/models/User"; // 👈 ייבוא המודל המדויק של UserProfile
 
 interface TaskAssigneeProps {
   assigneeId?: string;
   assigneeName: string;
-  assigneeUser: any;
+  assigneeUser?: UserProfile | null; // 👈 שימוש ב-UserProfile במקום any
   isDark: boolean;
 }
 
@@ -17,7 +18,8 @@ export const TaskAssignee = memo(
     assigneeUser,
     isDark,
   }: TaskAssigneeProps) {
-    const userForAvatar = useMemo(() => {
+    // מכינים אובייקט מסוג UserProfile או אובייקט חלק שלו (Partial)
+    const userForAvatar = useMemo<UserProfile | Partial<UserProfile>>(() => {
       return assigneeUser || { displayName: assigneeName };
     }, [assigneeUser, assigneeName]);
 

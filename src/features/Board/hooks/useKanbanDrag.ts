@@ -3,6 +3,19 @@ import type { Column } from "../../Column/models/Column";
 import type { Task } from "../../Task/models/Task";
 import { useSnack } from "../../../providers/SnackProvider";
 
+// הגדרת המבנה של אובייקט האירוע שה-Hook מצפה לקבל
+export interface DragEndEvent {
+  canceled?: boolean;
+  operation: {
+    source?: {
+      id?: string | number;
+    } | null;
+    target?: {
+      id?: string | number;
+    } | null;
+  };
+}
+
 interface UseKanbanDragProps {
   columns: Column[];
   tasks: Task[];
@@ -29,7 +42,7 @@ export function useKanbanDrag({
   }, [columns, tasks]);
 
   const handleDragEnd = useCallback(
-    async (event: any) => {
+    async (event: DragEndEvent) => {
       if (event.canceled) return;
 
       const currentColumns = columnsRef.current;
@@ -89,9 +102,11 @@ export function useKanbanDrag({
         if (currentTask && String(currentTask.columnId) !== targetColumnId) {
           await moveTaskToColumn(sourceId, targetColumnId);
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error("❌ Drag operation failed:", err);
-        showError(err.message || "שגיאה בעדכון מיקום הנגרר");
+        const message =
+          err instanceof Error ? err.message : "שגיאה בעדכון מיקום הנגרר";
+        showError(message);
       }
     },
     [moveTaskToColumn, reorderColumns, showError], // ⚡ תלויות יציבות בלבד! לא נבנית מחדש לעולם בעת שינוי משימה

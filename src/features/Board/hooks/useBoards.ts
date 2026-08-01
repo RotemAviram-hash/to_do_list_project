@@ -1,7 +1,21 @@
 import { useState, useEffect, useCallback } from "react";
 import * as boardService from "../services/boardsService";
-import type { Board } from "../models/Board";
-import { useSnack } from "../../../providers/SnackProvider"; // ⚡ 1. יבוא ה-Snack Hook
+import type { Board, BoardMemberRole } from "../models/Board";
+import { useSnack } from "../../../providers/SnackProvider";
+
+// פונקציית עזר לחילוץ הודעת שגיאה בצורה בטוחה מכל אובייקט שגיאה (unknown)
+const getErrorMessage = (err: unknown, fallback: string): string => {
+  if (err instanceof Error) return err.message;
+  if (
+    typeof err === "object" &&
+    err !== null &&
+    "message" in err &&
+    typeof (err as Record<string, unknown>).message === "string"
+  ) {
+    return (err as Record<string, unknown>).message as string;
+  }
+  return fallback;
+};
 
 export function useBoards(userId?: string) {
   const [boards, setBoards] = useState<Board[]>([]);
@@ -9,7 +23,6 @@ export function useBoards(userId?: string) {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  // ⚡ 2. שליפת פונקציות ה-Snack
   const { showSuccess, showError } = useSnack();
 
   // 1. האזנה לשינויים בזמן אמת
@@ -21,7 +34,6 @@ export function useBoards(userId?: string) {
       (updatedBoards) => {
         setBoards(updatedBoards);
 
-        // 💡 שימוש ב-Functional Updater למניעת Stale Closure
         setActiveBoardId((currentActiveId) => {
           const stillExists = updatedBoards.some(
             (b) => b.id === currentActiveId,
@@ -34,10 +46,10 @@ export function useBoards(userId?: string) {
 
         setLoading(false);
       },
-      (err) => {
-        const message = err.message || "שגיאה בטעינת הלוחות";
+      (err: unknown) => {
+        const message = getErrorMessage(err, "שגיאה בטעינת הלוחות");
         setError(message);
-        showError(message); // ⚡ התראה בלייב על שגיאת תקשורת/הרשאות
+        showError(message);
         setLoading(false);
       },
       userId,
@@ -54,13 +66,13 @@ export function useBoards(userId?: string) {
         const newBoardId = await boardService.addNewBoard(boardData);
 
         setActiveBoardId(newBoardId);
-        showSuccess(`הלוח "${boardData.title}" נוצר בהצלחה!`); // ⚡ חיווי הצלחה
+        showSuccess(`הלוח "${boardData.title}" נוצר בהצלחה!`);
         return newBoardId;
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error("Failed to add board:", err);
-        const message = err.message || "שגיאה בהוספת הלוח";
+        const message = getErrorMessage(err, "שגיאה בהוספת הלוח");
         setError(message);
-        showError(message); // ⚡ חיווי שגיאה
+        showError(message);
         throw err;
       }
     },
@@ -82,13 +94,13 @@ export function useBoards(userId?: string) {
       try {
         setError(null);
         await boardService.editBoard(id, updatedFields);
-        showSuccess("הלוח עודכן בהצלחה"); // ⚡ חיווי הצלחה
-      } catch (err: any) {
+        showSuccess("הלוח עודכן בהצלחה");
+      } catch (err: unknown) {
         console.error("Failed to update board:", err);
-        setBoards(previousBoards); // Rollback מקומי
-        const message = err.message || "שגיאה בעדכון הלוח";
+        setBoards(previousBoards);
+        const message = getErrorMessage(err, "שגיאה בעדכון הלוח");
         setError(message);
-        showError(message); // ⚡ חיווי שגיאה במקרה של ביטול השינויים
+        showError(message);
         throw err;
       }
     },
@@ -96,24 +108,61 @@ export function useBoards(userId?: string) {
   );
 
   // 4. מחיקת לוח (Optimistic UI)
-
   const deleteBoard = useCallback(
     async (boardId: string, hasColumns: boolean) => {
-      // ⚡ 1. עצירה מיידית ברמת ה-UI - ללא קריאת שרת בכלל!
       if (hasColumns) {
         showError("לא ניתן למחוק לוח שמכיל עמודות. יש למחוק אותן תחילה!");
         return;
       }
 
-      // 2. רק אם הלוח ריק - ממשיכים ל-Optimistic Delete ולמחיקה ב-Firebase
       setBoards((prev) => prev.filter((board) => board.id !== boardId));
 
       try {
         await boardService.removeBoard(boardId);
         showSuccess("הלוח נמחק בהצלחה");
-      } catch (err: any) {
-        // טיפול בשגיאות רשת כלליות בלבד
+      } catch (err: unknown) {
+        console.error("Failed to delete board:", err);
         showError("שגיאה בתקשורת מול השרת");
+      }
+    },
+    [showSuccess, showError],
+  );
+
+  // 5. הוספת/עדכון משתמש בלוח (שיתוף לוח + הגדרת תפקיד)
+  const addMemberToBoard = useCallback(
+    async (
+      boardId: string,
+      targetUserId: string,
+      role: BoardMemberRole = "editor",
+    ) => {
+      try {
+        setError(null);
+        await boardService.addMemberToBoard(boardId, targetUserId, role);
+        showSuccess("המשתמש נוסף ללוח בהצלחה!");
+      } catch (err: unknown) {
+        console.error("Failed to add member to board:", err);
+        const message = getErrorMessage(err, "שגיאה בהוספת המשתמש ללוח");
+        setError(message);
+        showError(message);
+        throw err;
+      }
+    },
+    [showSuccess, showError],
+  );
+
+  // 6. הסרת משתמש מלוח
+  const removeMemberFromBoard = useCallback(
+    async (boardId: string, targetUserId: string) => {
+      try {
+        setError(null);
+        await boardService.removeMemberFromBoard(boardId, targetUserId);
+        showSuccess("המשתמש הוסר מהלוח בהצלחה");
+      } catch (err: unknown) {
+        console.error("Failed to remove member from board:", err);
+        const message = getErrorMessage(err, "שגיאה בהסרת המשתמש מהלוח");
+        setError(message);
+        showError(message);
+        throw err;
       }
     },
     [showSuccess, showError],
@@ -132,5 +181,7 @@ export function useBoards(userId?: string) {
     addBoard,
     updateBoard,
     deleteBoard,
+    addMemberToBoard,
+    removeMemberFromBoard,
   };
 }
