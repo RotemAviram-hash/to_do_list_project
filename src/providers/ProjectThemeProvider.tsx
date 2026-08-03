@@ -13,6 +13,7 @@ function ProjectThemeProvider({ children }: { children: ReactNode }) {
 
   // הגדרת ערכי ה-Theme המלאים עם פלטת צבעים מותאמת
   const theme = createTheme({
+    direction: "rtl", // מבטיח כיווניות מימין לשמאל
     palette: {
       mode: isDark ? "dark" : "light",
       ...(isDark
@@ -110,6 +111,19 @@ function ProjectThemeProvider({ children }: { children: ReactNode }) {
           }),
     },
     components: {
+      // 🟢 הגדרה רוחבית לכל הכפתורים באפליקציה למניעת הידבקות האייקון לטקסט בעברית
+      MuiButton: {
+        styleOverrides: {
+          startIcon: {
+            marginLeft: "8px",
+            marginRight: "-4px",
+          },
+          endIcon: {
+            marginRight: "8px",
+            marginLeft: "-4px",
+          },
+        },
+      },
       MuiPaper: {
         defaultProps: {
           elevation: 0,
@@ -122,7 +136,7 @@ function ProjectThemeProvider({ children }: { children: ReactNode }) {
           }),
         },
       },
-      // 👈 הדריסה החדשה שמבטלת את הכפייה של צבע הכחול על טאב נבחר
+      // הדריסה שמבטלת את הכפייה של צבע הכחול על טאב נבחר
       MuiTab: {
         styleOverrides: {
           root: {

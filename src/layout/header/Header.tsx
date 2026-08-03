@@ -12,7 +12,6 @@ import {
 } from "@mui/material";
 import Brightness4Icon from "@mui/icons-material/Brightness4";
 import Brightness7Icon from "@mui/icons-material/Brightness7";
-import DashboardRoundedIcon from "@mui/icons-material/DashboardRounded";
 
 import NavItem from "../../router/NavItem";
 import ROUTES from "../../router/routes";
@@ -174,7 +173,6 @@ function Header() {
           </Box>
         )}
 
-        {/* אזור ימין: לוגו עדין וחמוד בהשראת הלוח */}
         <Box
           onClick={() => navigate(ROUTES.HOME)}
           sx={{
@@ -195,7 +193,7 @@ function Header() {
               bgcolor: isDark ? alpha("#3b82f6", 0.15) : alpha("#3b82f6", 0.1),
               transform: "translateY(-1px)",
               "& .logo-icon-box": {
-                transform: "rotate(6deg) scale(1.05)",
+                transform: "rotate(6deg) scale(1.08)",
               },
             },
           }}
@@ -216,23 +214,20 @@ function Header() {
             </Box>
           </Typography>
 
+          {/* הברקת הלוגו הראשי מ-public/logo.svg */}
           <Box
             className="logo-icon-box"
+            component="img"
+            src="/logo.svg"
+            alt="TaskFlow Logo"
             sx={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              width: 30,
-              height: 30,
+              width: 32,
+              height: 32,
               borderRadius: "10px",
-              bgcolor: "primary.main",
-              color: "#ffffff",
-              boxShadow: "0 2px 8px rgba(59, 130, 246, 0.3)",
+              filter: "drop-shadow(0 2px 6px rgba(59, 130, 246, 0.3))",
               transition: "transform 0.2s ease",
             }}
-          >
-            <DashboardRoundedIcon sx={{ fontSize: 17 }} />
-          </Box>
+          />
         </Box>
       </Toolbar>
     </AppBar>

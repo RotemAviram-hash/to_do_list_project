@@ -4,7 +4,7 @@ import { CalendarView } from "../features/Calendar/components/CalendarView";
 import { useTasks } from "../features/Task/hooks/useTasks";
 import type { Task } from "../features/Task/models/Task";
 
-export const CalendarPage: React.FC = () => {
+const CalendarPage: React.FC = () => {
   // 💡 במידה ו-useTasks מצפה ל-boardId, יש להעביר אותו כאן
   const { tasks, loading, error } = useTasks();
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
@@ -29,3 +29,5 @@ export const CalendarPage: React.FC = () => {
     </Box>
   );
 };
+
+export default CalendarPage;

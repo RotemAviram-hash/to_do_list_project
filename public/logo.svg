@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <!-- רקע מעוגל נקי ושטוח -->
+  <rect x="32" y="32" width="448" height="448" rx="112" fill="#2563EB" />
+
+  <!-- 3 עמודות קאנבן פשוטות ושטוחות לחלוטין (בלי אפקטים) -->
+  <rect x="110" y="140" width="76" height="232" rx="14" fill="#FFFFFF" opacity="0.25" />
+  <rect x="218" y="140" width="76" height="232" rx="14" fill="#FFFFFF" opacity="0.45" />
+  <rect x="326" y="140" width="76" height="232" rx="14" fill="#FFFFFF" opacity="0.25" />
+
+  <!-- V חד, חלק ושטוח שמחבר ביניהן -->
+  <path d="M 130 270 L 210 350 C 265 280, 320 180, 395 150" 
+        fill="none" 
+        stroke="#FFFFFF" 
+        stroke-width="38" 
+        stroke-linecap="round" 
+        stroke-linejoin="round" />
+</svg>
